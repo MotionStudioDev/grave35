@@ -1,122 +1,141 @@
-const { Client, Collection, Events, GatewayIntentBits, PermissionFlagsBits, Partials, EmbedBuilder} = require("discord.js");
-const client = new Client({intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildEmojisAndStickers, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildWebhooks, GatewayIntentBits.GuildInvites, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildPresences, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMessageTyping, GatewayIntentBits.DirectMessages, GatewayIntentBits.DirectMessageReactions, GatewayIntentBits.DirectMessageTyping, GatewayIntentBits.MessageContent], shards: "auto", partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.Reaction, Partials.GuildScheduledEvent, Partials.User, Partials.ThreadMember]});
-const config = require("./src/config.js");
-const { readdirSync } = require("fs")
+const { 
+  Client, 
+  Collection, 
+  Events, 
+  GatewayIntentBits, 
+  PermissionFlagsBits, 
+  Partials, 
+  EmbedBuilder
+} = require("discord.js");
+const { readdirSync } = require("fs");
 const moment = require("moment");
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const db = require("croxydb")
+const express = require("express");
+const db = require("croxydb");
+const config = require("./src/config.js");
 
-let token = config.token
+// ==== CLIENT ====
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildEmojisAndStickers,
+    GatewayIntentBits.GuildIntegrations,
+    GatewayIntentBits.GuildWebhooks,
+    GatewayIntentBits.GuildInvites,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMessageTyping,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.DirectMessageReactions,
+    GatewayIntentBits.DirectMessageTyping,
+    GatewayIntentBits.MessageContent
+  ],
+  shards: "auto",
+  partials: [
+    Partials.Message,
+    Partials.Channel,
+    Partials.GuildMember,
+    Partials.Reaction,
+    Partials.GuildScheduledEvent,
+    Partials.User,
+    Partials.ThreadMember
+  ]
+});
 
-client.commands = new Collection()
-client.slashcommands = new Collection()
-client.commandaliases = new Collection()
-
+const token = config.token;
 const rest = new REST({ version: '10' }).setToken(token);
 
-const log = x => { console.log(`[${moment().format("DD-MM-YYYY HH:mm:ss")}] ${x}`) };
+client.commands = new Collection();
+client.slashcommands = new Collection();
+client.commandaliases = new Collection();
 
+const log = (x) => console.log(`[${moment().format("DD-MM-YYYY HH:mm:ss")}] ${x}`);
 
-//slash-command-handler
+// ==== SLASH COMMAND HANDLER ====
 const slashcommands = [];
-readdirSync('./src/commands').forEach(async file => {
-  const command = await require(`./src/commands/${file}`);
+readdirSync('./src/commands').forEach(file => {
+  const command = require(`./src/commands/${file}`);
   slashcommands.push(command.data.toJSON());
   client.slashcommands.set(command.data.name, command);
-})
+});
 
-client.on(Events.ClientReady, async () => {
-        try {
-            await rest.put(
-                Routes.applicationCommands(client.user.id),
-                { body: slashcommands },
-            );
-        } catch (error) {
-            console.error(error);
-        }
-    log(`${client.user.username} Aktif Edildi!`);
-})
+// ==== KOMUT YÜKLEME (Hem guild hem global) ====
+client.once(Events.ClientReady, async () => {
+  try {
+    // Test sunucuna anında yükle
+    await rest.put(
+      Routes.applicationGuildCommands(client.user.id, "1408511083232362547"), // 👈 buraya test sunucu ID
+      { body: slashcommands }
+    );
+    log(`${slashcommands.length} komut test sunucuna yüklendi ✅`);
 
-//event-handler
-readdirSync('./src/events').forEach(async file => {
-	const event = await require(`./src/events/${file}`);
-	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args));
-	} else {
-		client.on(event.name, (...args) => event.execute(...args));
-	}
-})
+    // Global yükle (yayılması zaman alır)
+    await rest.put(
+      Routes.applicationCommands(client.user.id),
+      { body: slashcommands }
+    );
+    log(`${slashcommands.length} komut global yüklendi 🌍`);
+  } catch (error) {
+    console.error(error);
+  }
 
-//nodejs-listeners
-process.on("unhandledRejection", e => { 
-   console.log(e)
- }) 
-process.on("uncaughtException", e => { 
-   console.log(e)
- })  
-process.on("uncaughtExceptionMonitor", e => { 
-   console.log(e)
- })
-//
+  log(`${client.user.username} aktif edildi!`);
+});
 
+// ==== EVENT HANDLER ====
+readdirSync('./src/events').forEach(file => {
+  const event = require(`./src/events/${file}`);
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args));
+  }
+});
 
+// ==== NODE.JS LISTENERS ====
+process.on("unhandledRejection", e => console.log(e));
+process.on("uncaughtException", e => console.log(e));
+process.on("uncaughtExceptionMonitor", e => console.log(e));
 
-client.login(process.env.token)
-
-
-//---------- Otorol ----------//
+// ==== OTOROL ====
 client.on("guildMemberAdd", member => {
-  const rol = db.get(`otorol_${member.guild.id}`)
+  const rol = db.get(`otorol_${member.guild.id}`);
   if (!rol) return;
-  member.roles.add(rol).catch(() => { })
-})
+  member.roles.add(rol).catch(() => {});
+});
 
-//---------- Reklam engel ----------//
-client.on("messageCreate", (message) => {
-  const db = require("croxydb")
-  let reklamlar = db.fetch(`reklamengel_${message.guild.id}`)
+// ==== REKLAM ENGEL ====
+client.on("messageCreate", message => {
+  let reklamlar = db.fetch(`reklamengel_${message.guild.id}`);
   if (!reklamlar) return;
 
-  if (reklamlar) {
+  const linkler = [
+    ".com.tr", ".net", ".org", ".tk", ".cf", ".gf",
+    "https://", ".gq", "http://", ".com", ".gg",
+    ".porn", ".edu"
+  ];
 
-    const linkler = [
-
-      ".com.tr",
-      ".net",
-      ".org",
-      ".tk",
-      ".cf",
-      ".gf",
-      "https://",
-      ".gq",
-      "http://",
-      ".com",
-      ".gg",
-      ".porn",
-      ".edu"
-
-    ]
-
-    if (linkler.some(alo => message.content.toLowerCase().includes(alo))) {
-      if (message.member.permissions.has(PermissionFlagsBits.ManageMessages)) return;
-      message.delete()
-      const embed = new EmbedBuilder()
-        .setDescription(`<@${message.author.id}>, dostum. Bu sunucuda reklam engelleme sistemi aktif!`);
-      message.channel.send({ embeds: [embed] })
-    }
+  if (linkler.some(alo => message.content.toLowerCase().includes(alo))) {
+    if (message.member.permissions.has(PermissionFlagsBits.ManageMessages)) return;
+    message.delete();
+    const embed = new EmbedBuilder()
+      .setDescription(`<@${message.author.id}>, dostum. Bu sunucuda reklam engelleme sistemi aktif!`);
+    message.channel.send({ embeds: [embed] });
   }
-})
-// Sunucu oluşturma ve proje aktivitesi sağlama.
-const express = require('express');
+});
+
+// ==== BOT LOGIN ====
+client.login(process.env.token);
+
+// ==== EXPRESS (Render için) ====
 const app = express();
 const port = 3000;
 
-// Web sunucu
-app.get('/', (req, res) => {
-  res.sendStatus(200);
-});
-
+app.get('/', (req, res) => res.sendStatus(200));
 app.listen(port, () => {
   console.log(`Sunucu ${port} numaralı bağlantı noktasında yürütülüyor.`);
 });
