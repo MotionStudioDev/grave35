@@ -5,6 +5,7 @@ module.exports = {
   async execute(interaction) {
     const client = interaction.client;
 
+    // Sadece slash komutlara bak
     if (interaction.type !== InteractionType.ApplicationCommand) return;
     if (interaction.user.bot) return;
 
@@ -12,9 +13,9 @@ module.exports = {
     if (!command) return;
 
     try {
-      await command.run(client, interaction);
-    } catch (e) {
-      console.error(e);
+      await command.execute(client, interaction); // 🔥 artık execute çağırıyoruz
+    } catch (error) {
+      console.error(error);
 
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply("❌ Komut çalıştırılırken bir hata oluştu!");
