@@ -1,56 +1,63 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { PermissionFlagsBits, EmbedBuilder } = require("discord.js");
+// src/commands/unban.js
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName("unban")
-        .setDescription("Belirtilen kullanıcının yasağını kaldırır.")
-        .addStringOption(option =>
-            option.setName("kullanıcı")
-                .setDescription("Kullanıcının ID'sini girin.")
-                .setRequired(true)
-        ),
-        
-    async run(client, interaction) {
-        const bannedUserId = interaction.options.getString("kullanıcı");
+  data: new SlashCommandBuilder()
+    .setName("unban")
+    .setDescription("Belirtilen kullanıcının yasağını kaldırır.")
+    .addStringOption(option =>
+      option
+        .setName("kullanıcı")
+        .setDescription("Kullanıcının ID'sini girin.")
+        .setRequired(true)
+    ),
 
-        // Yetki kontrolü
-        if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
-            return interaction.reply({
-                content: "❌ Bu komutu kullanmak için `Üyeleri Yasakla` yetkisine sahip olmalısınız.",
-                ephemeral: true
-            });
-        }
+  async execute(client, interaction) {
+    const targetId = interaction.options.getString("kullanıcı").trim();
 
-        try {
-            const guild = interaction.guild;
-            const bans = await guild.bans.fetch();
-            const bannedUser = bans.find(ban => ban.user.id === bannedUserId);
+    // Kullanıcı yetkisi
+    if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
+      return interaction.reply({
+        content: "❌ Bu komutu kullanmak için `Üyeleri Yasakla` yetkisine sahip olmalısınız.",
+        ephemeral: true,
+      });
+    }
 
-            if (!bannedUser) {
-                const embed = new EmbedBuilder()
-                    .setColor("Red")
-                    .setDescription("❌ Belirtilen ID ile eşleşen yasaklı kullanıcı bulunamadı.");
+    // Bot yetkisi
+    if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.BanMembers)) {
+      return interaction.reply({
+        content: "❌ Benim `Üyeleri Yasakla` yetkim yok. Lütfen yetki verip tekrar deneyin.",
+        ephemeral: true,
+      });
+    }
 
-                return interaction.reply({ embeds: [embed], ephemeral: true });
-            }
+    // Zaman aşımı ve çift reply hatalarını önlemek için
+    await interaction.deferReply({ ephemeral: true });
 
-            const reason = bannedUser.reason || "Neden belirtilmemiş.";
+    try {
+      // Kullanıcı banlı mı kontrol et (banlı değilse 10026 hatası fırlatır)
+      const ban = await interaction.guild.bans.fetch(targetId);
+      const reason = ban?.reason ?? "Neden belirtilmemiş.";
 
-            await guild.bans.remove(bannedUser.user);
+      // Banı kaldır
+      await interaction.guild.bans.remove(targetId, `Unban by ${interaction.user.tag}`);
 
-            const embed = new EmbedBuilder()
-                .setColor("Green")
-                .setDescription(`✅ Kullanıcının yasağı kaldırıldı: **${bannedUser.user.tag}**\n**Sebep:** ${reason}`);
+      const embed = new EmbedBuilder()
+        .setColor(0x57F287)
+        .setDescription(`✅ **${ban.user.tag}** kullanıcısının yasağı kaldırıldı.\n**Sebep:** ${reason}`);
 
-            return interaction.reply({ embeds: [embed] });
+      await interaction.editReply({ embeds: [embed] });
+    } catch (err) {
+      // Ban yoksa (Unknown Ban)
+      if (err?.code === 10026 || /Unknown Ban/i.test(String(err?.message))) {
+        const embed = new EmbedBuilder()
+          .setColor(0xED4245)
+          .setDescription("❌ Bu ID’ye ait bir ban bulunamadı.");
+        return interaction.editReply({ embeds: [embed] });
+      }
 
-        } catch (error) {
-            console.error(error);
-            return interaction.reply({
-                content: "❌ Yasağı kaldırırken bir hata oluştu.",
-                ephemeral: true
-            });
-        }
-    },
+      console.error(err);
+      return interaction.editReply({ content: "❌ Yasağı kaldırırken bir hata oluştu." });
+    }
+  },
 };
