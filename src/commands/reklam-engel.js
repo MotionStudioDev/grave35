@@ -1,44 +1,31 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require("discord.js");
+const { Client, EmbedBuilder, PermissionFlagsBits } = require("discord.js");
 const db = require("croxydb");
+const { SlashCommandBuilder } = require("@discordjs/builders");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("reklam-engel")
-        .setDescription("Reklam engel sistemini açar veya kapatır."),
+        .setDescription("Reklam engel sistemini açar/kapatır."),
 
     run: async (client, interaction) => {
-        // Yetki kontrolü
         if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
-            return interaction.reply({ 
-                content: "❌ Bu komutu kullanmak için **Mesajları Yönet** yetkisine sahip olmalısın.", 
-                ephemeral: true 
-            });
+            return interaction.reply({ content: "❌ Mesajları Yönet yetkin yok!", ephemeral: true });
         }
 
-        // Veritabanı kontrol
-        const dataKey = `reklamengel_${interaction.guild.id}`;
-        const systemStatus = db.fetch(dataKey);
+        let reklam = db.fetch(`reklamengel_${interaction.guild.id}`);
 
-        if (systemStatus) {
-            // Varsa → kapat
-            db.delete(dataKey);
-
+        if (reklam) {
+            db.delete(`reklamengel_${interaction.guild.id}`);
             const embed = new EmbedBuilder()
                 .setColor("Red")
-                .setTitle("🚫 Reklam Engel Sistemi Kapatıldı")
-                .setDescription("Artık reklam mesajları engellenmeyecek.");
-
-            return interaction.reply({ embeds: [embed], ephemeral: true });
+                .setDescription("❌ Reklam engel kapatıldı. Artık reklam mesajları silinmeyecek.");
+            return interaction.reply({ embeds: [embed] });
         } else {
-            // Yoksa → aç
-            db.set(dataKey, true);
-
+            db.set(`reklamengel_${interaction.guild.id}`, true);
             const embed = new EmbedBuilder()
                 .setColor("Green")
-                .setTitle("✅ Reklam Engel Sistemi Açıldı")
-                .setDescription("Reklam mesajları otomatik olarak silinecek ve kullanıcı uyarılacak.");
-
-            return interaction.reply({ embeds: [embed], ephemeral: true });
+                .setDescription("✅ Reklam engel açıldı. Reklam mesajları otomatik silinecek.");
+            return interaction.reply({ embeds: [embed] });
         }
     }
 };
