@@ -13,51 +13,47 @@ module.exports = {
     ),
 
   async execute(client, interaction) {
-    const targetId = interaction.options.getString("kullanıcı").trim();
+    const bannedUserId = interaction.options.getString("kullanıcı");
 
-    // Kullanıcı yetkisi
+    // Yetki kontrolü
     if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
       return interaction.reply({
-        content: "❌ Bu komutu kullanmak için `Üyeleri Yasakla` yetkisine sahip olmalısınız.",
+        content: "❌ Bu komutu kullanmak için **Üyeleri Yasakla** yetkisine sahip olmalısınız.",
         ephemeral: true,
       });
     }
-
-    // Bot yetkisi
-    if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.BanMembers)) {
-      return interaction.reply({
-        content: "❌ Benim `Üyeleri Yasakla` yetkim yok. Lütfen yetki verip tekrar deneyin.",
-        ephemeral: true,
-      });
-    }
-
-    // Zaman aşımı ve çift reply hatalarını önlemek için
-    await interaction.deferReply({ ephemeral: true });
 
     try {
-      // Kullanıcı banlı mı kontrol et (banlı değilse 10026 hatası fırlatır)
-      const ban = await interaction.guild.bans.fetch(targetId);
-      const reason = ban?.reason ?? "Neden belirtilmemiş.";
+      // Önce deferReply → Discord’a “cevap gelecek” diye haber veriyoruz
+      await interaction.deferReply({ ephemeral: true });
 
-      // Banı kaldır
-      await interaction.guild.bans.remove(targetId, `Unban by ${interaction.user.tag}`);
+      const bans = await interaction.guild.bans.fetch();
+      const bannedUser = bans.get(bannedUserId);
 
-      const embed = new EmbedBuilder()
-        .setColor(0x57F287)
-        .setDescription(`✅ **${ban.user.tag}** kullanıcısının yasağı kaldırıldı.\n**Sebep:** ${reason}`);
-
-      await interaction.editReply({ embeds: [embed] });
-    } catch (err) {
-      // Ban yoksa (Unknown Ban)
-      if (err?.code === 10026 || /Unknown Ban/i.test(String(err?.message))) {
-        const embed = new EmbedBuilder()
-          .setColor(0xED4245)
-          .setDescription("❌ Bu ID’ye ait bir ban bulunamadı.");
-        return interaction.editReply({ embeds: [embed] });
+      if (!bannedUser) {
+        return interaction.editReply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("Red")
+              .setDescription("❌ Bu ID'ye sahip yasaklı kullanıcı bulunamadı."),
+          ],
+        });
       }
 
-      console.error(err);
-      return interaction.editReply({ content: "❌ Yasağı kaldırırken bir hata oluştu." });
+      await interaction.guild.bans.remove(bannedUser.user);
+
+      return interaction.editReply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor("Green")
+            .setDescription(`✅ **${bannedUser.user.tag}** kullanıcısının yasağı kaldırıldı.`),
+        ],
+      });
+    } catch (error) {
+      console.error(error);
+      return interaction.editReply({
+        content: "❌ Yasağı kaldırırken bir hata oluştu. (Not: Botun `Üyeleri Yasakla` yetkisi olmalı)",
+      });
     }
   },
 };
