@@ -5,12 +5,21 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("unban")
         .setDescription("Belirtilen kullanıcının yasağını kaldırır.")
-        .addStringOption(option => option.setName("kullanıcı").setDescription("Kullanıcının ID'sini girin.").setRequired(true)),
-    run: execute (client, interaction) => {
+        .addStringOption(option =>
+            option.setName("kullanıcı")
+                .setDescription("Kullanıcının ID'sini girin.")
+                .setRequired(true)
+        ),
+        
+    async run(client, interaction) {
         const bannedUserId = interaction.options.getString("kullanıcı");
 
+        // Yetki kontrolü
         if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
-            return interaction.reply("Bu komutu kullanmak için gerekli yetkiye sahip değilsiniz.");
+            return interaction.reply({
+                content: "❌ Bu komutu kullanmak için `Üyeleri Yasakla` yetkisine sahip olmalısınız.",
+                ephemeral: true
+            });
         }
 
         try {
@@ -21,22 +30,27 @@ module.exports = {
             if (!bannedUser) {
                 const embed = new EmbedBuilder()
                     .setColor("Red")
-                    .setDescription("Belirtilen kullanıcının yasağı bulunamadı.");
+                    .setDescription("❌ Belirtilen ID ile eşleşen yasaklı kullanıcı bulunamadı.");
 
-                return interaction.reply({ embeds: [embed] });
+                return interaction.reply({ embeds: [embed], ephemeral: true });
             }
+
             const reason = bannedUser.reason || "Neden belirtilmemiş.";
 
             await guild.bans.remove(bannedUser.user);
 
             const embed = new EmbedBuilder()
                 .setColor("Green")
-                .setDescription(`Kullanıcının yasağı kaldırıldı: ${bannedUser.user.tag}\nNeden: ${reason}`);
+                .setDescription(`✅ Kullanıcının yasağı kaldırıldı: **${bannedUser.user.tag}**\n**Sebep:** ${reason}`);
 
-            interaction.reply({ embeds: [embed] });
+            return interaction.reply({ embeds: [embed] });
+
         } catch (error) {
             console.error(error);
-            interaction.reply("Yasağı kaldırırken bir hata oluştu.");
+            return interaction.reply({
+                content: "❌ Yasağı kaldırırken bir hata oluştu.",
+                ephemeral: true
+            });
         }
     },
 };
