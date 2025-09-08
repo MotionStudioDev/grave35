@@ -19,19 +19,11 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildEmojisAndStickers,
-    GatewayIntentBits.GuildIntegrations,
-    GatewayIntentBits.GuildWebhooks,
-    GatewayIntentBits.GuildInvites,
-    GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.GuildPresences,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildMessageTyping,
-    GatewayIntentBits.DirectMessages,
-    GatewayIntentBits.DirectMessageReactions,
-    GatewayIntentBits.DirectMessageTyping,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages
   ],
   shards: "auto",
   partials: [
@@ -39,16 +31,15 @@ const client = new Client({
     Partials.Channel,
     Partials.GuildMember,
     Partials.Reaction,
-    Partials.GuildScheduledEvent,
-    Partials.User,
-    Partials.ThreadMember
+    Partials.User
   ]
 });
 
-// 🔑 Token sadece buradan alınacak!
-const token = process.env.token; 
+// 🔑 Token
+const token = process.env.token;
 const rest = new REST({ version: '10' }).setToken(token);
 
+// Koleksiyonlar
 client.commands = new Collection();
 client.slashcommands = new Collection();
 client.commandaliases = new Collection();
@@ -66,14 +57,14 @@ readdirSync('./src/commands').forEach(file => {
 // ==== KOMUT YÜKLEME (Hem guild hem global) ====
 client.once(Events.ClientReady, async () => {
   try {
-    // Test sunucuna anında yükle
+    // Test sunucuna yükle (instant update)
     await rest.put(
-      Routes.applicationGuildCommands(client.user.id, "1408511083232362547"), // 👈 test sunucu ID
+      Routes.applicationGuildCommands(client.user.id, "1408511083232362547"), 
       { body: slashcommands }
     );
     log(`${slashcommands.length} komut test sunucuna yüklendi ✅`);
 
-    // Global yükle (yayılması zaman alır)
+    // Global yükle (yayılması 1 saat sürebilir)
     await rest.put(
       Routes.applicationCommands(client.user.id),
       { body: slashcommands }
@@ -125,13 +116,11 @@ client.on("messageCreate", async (message) => {
 
     try {
       await message.delete();
-
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("🚫 Reklam Engellendi!")
-        .setDescription(`<@${message.author.id}>, bu sunucuda reklam yapmak yasak.`)
+        .setDescription(`<@${message.author.id}>, reklam yapmak yasak.`)
         .setTimestamp();
-
       await message.channel.send({ embeds: [embed] });
     } catch (err) {
       console.error("Reklam engelleme hatası:", err);
