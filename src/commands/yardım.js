@@ -20,6 +20,7 @@ module.exports = {
                 **/reklam-engel** • Reklam engel sistemini açar.
                 **/slowmode** • Kanala yavaş mod ekler.
                 **/temizle** • Belirtilen miktarda mesaj siler.
+                **/ping** • Grave botun sunuculardaki pingini ölçersiniz.
 
             `);
 
