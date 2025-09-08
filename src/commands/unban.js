@@ -6,7 +6,7 @@ module.exports = {
         .setName("unban")
         .setDescription("Belirtilen kullanıcının yasağını kaldırır.")
         .addStringOption(option => option.setName("kullanıcı").setDescription("Kullanıcının ID'sini girin.").setRequired(true)),
-    run: async (client, interaction) => {
+    run: execute (client, interaction) => {
         const bannedUserId = interaction.options.getString("kullanıcı");
 
         if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
