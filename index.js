@@ -109,22 +109,33 @@ client.on("guildMemberAdd", member => {
 });
 
 // ==== REKLAM ENGEL ====
-client.on("messageCreate", message => {
-  let reklamlar = db.fetch(`reklamengel_${message.guild.id}`);
-  if (!reklamlar) return;
+client.on("messageCreate", async (message) => {
+  if (!message.guild || message.author.bot) return;
+
+  let reklamEngel = db.fetch(`reklamengel_${message.guild.id}`);
+  if (!reklamEngel) return;
 
   const linkler = [
-    ".com.tr", ".net", ".org", ".tk", ".cf", ".gf",
-    "https://", ".gq", "http://", ".com", ".gg",
-    ".porn", ".edu"
+    ".com", ".net", ".org", ".xyz", ".gg", ".tk", ".cf", ".ml", ".ga", ".gq",
+    "http://", "https://", "www.", ".io", ".co", ".pw", ".us", ".uk"
   ];
 
-  if (linkler.some(alo => message.content.toLowerCase().includes(alo))) {
+  if (linkler.some(link => message.content.toLowerCase().includes(link))) {
     if (message.member.permissions.has(PermissionFlagsBits.ManageMessages)) return;
-    message.delete();
-    const embed = new EmbedBuilder()
-      .setDescription(`<@${message.author.id}>, dostum. Bu sunucuda reklam engelleme sistemi aktif!`);
-    message.channel.send({ embeds: [embed] });
+
+    try {
+      await message.delete();
+
+      const embed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("🚫 Reklam Engellendi!")
+        .setDescription(`<@${message.author.id}>, bu sunucuda reklam yapmak yasak.`)
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+    } catch (err) {
+      console.error("Reklam engelleme hatası:", err);
+    }
   }
 });
 
