@@ -13,7 +13,6 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const express = require("express");
 const db = require("croxydb");
-const config = require("./src/config.js");
 
 // ==== CLIENT ====
 const client = new Client({
@@ -46,7 +45,8 @@ const client = new Client({
   ]
 });
 
-const token = config.token;
+// 🔑 Token sadece buradan alınacak!
+const token = process.env.token; 
 const rest = new REST({ version: '10' }).setToken(token);
 
 client.commands = new Collection();
@@ -68,7 +68,7 @@ client.once(Events.ClientReady, async () => {
   try {
     // Test sunucuna anında yükle
     await rest.put(
-      Routes.applicationGuildCommands(client.user.id, "1408511083232362547"), // 👈 buraya test sunucu ID
+      Routes.applicationGuildCommands(client.user.id, "1408511083232362547"), // 👈 test sunucu ID
       { body: slashcommands }
     );
     log(`${slashcommands.length} komut test sunucuna yüklendi ✅`);
@@ -129,7 +129,7 @@ client.on("messageCreate", message => {
 });
 
 // ==== BOT LOGIN ====
-client.login(process.env.token);
+client.login(token);
 
 // ==== EXPRESS (Render için) ====
 const app = express();
