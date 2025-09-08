@@ -5,12 +5,19 @@ const db = require("croxydb");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("oto-rol")
-        .setDescription("Yeni gelenlere otomatik rol verir.")
-        .addRoleOption(option =>
-            option
-                .setName("rol")
-                .setDescription("Lütfen bir rol seçin.")
-                .setRequired(true)
+        .setDescription("Yeni gelenlere otomatik rol verir veya kapatır.")
+        .addSubcommand(sub =>
+            sub.setName("ayarla")
+               .setDescription("Otorol için bir rol ayarlayın.")
+               .addRoleOption(option =>
+                   option.setName("rol")
+                         .setDescription("Otomatik verilecek rol")
+                         .setRequired(true)
+               )
+        )
+        .addSubcommand(sub =>
+            sub.setName("kapat")
+               .setDescription("Otorol sistemini kapatır.")
         ),
 
     run: async (client, interaction) => {
@@ -18,19 +25,26 @@ module.exports = {
             return interaction.reply({ content: "❌ Rolleri Yönet yetkin yok!", ephemeral: true });
         }
 
-        const rol = interaction.options.getRole("rol");
-        db.set(`otorol_${interaction.guild.id}`, rol.id);
+        const sub = interaction.options.getSubcommand();
 
-        const embed = new EmbedBuilder()
-            .setColor("Green")
-            .setTitle("✅ Otorol Sistemi Ayarlandı")
-            .setDescription(`
-Yeni gelen üyelere <@&${rol.id}> rolü otomatik olarak verilecek.
+        if (sub === "ayarla") {
+            const rol = interaction.options.getRole("rol");
+            db.set(`otorol_${interaction.guild.id}`, rol.id);
 
-> **Not:** Eğer botun rolü <@&${rol.id}> rolünden daha aşağıdaysa bot bu rolü veremez. Lütfen botun rolünü üste alın.
-            `)
-            .setTimestamp();
+            const embed = new EmbedBuilder()
+                .setColor("Green")
+                .setTitle("✅ Otorol Ayarlandı")
+                .setDescription(`Yeni gelen üyelere <@&${rol.id}> rolü verilecek.`);
+            return interaction.reply({ embeds: [embed] });
+        }
 
-        interaction.reply({ embeds: [embed] });
+        if (sub === "kapat") {
+            db.delete(`otorol_${interaction.guild.id}`);
+            const embed = new EmbedBuilder()
+                .setColor("Red")
+                .setTitle("❌ Otorol Kapatıldı")
+                .setDescription("Artık yeni gelenlere otomatik rol verilmeyecek.");
+            return interaction.reply({ embeds: [embed] });
+        }
     }
 };
