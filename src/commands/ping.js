@@ -4,14 +4,24 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("ping")
     .setDescription("Botun pingini gösterir"),
-  
-  async execute(interaction) {
-    // deferReply kullanmamız lazım çünkü ping ölçümü bazen 3 saniyeyi geçebilir
-    await interaction.deferReply();
 
-    const botPing = Date.now() - interaction.createdTimestamp;
-    const apiPing = interaction.client.ws.ping;
+  // senin yapına uygun → run(client, interaction)
+  async run(client, interaction) {
+    try {
+      // önce deferReply, yoksa zaman aşımına düşer
+      await interaction.deferReply();
 
-    await interaction.editReply(`🏓 Pong!\nBot gecikmesi: **${botPing}ms**\nAPI gecikmesi: **${apiPing}ms**`);
+      const botPing = Date.now() - interaction.createdTimestamp;
+      const apiPing = client.ws.ping;
+
+      await interaction.editReply(`🏓 Pong!\nBot gecikmesi: **${botPing}ms**\nAPI gecikmesi: **${apiPing}ms**`);
+    } catch (err) {
+      console.error(err);
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply("❌ Komut çalıştırılırken hata oluştu!");
+      } else {
+        await interaction.reply({ content: "❌ Komut çalıştırılırken hata oluştu!", ephemeral: true });
+      }
+    }
   }
 };
