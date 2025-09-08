@@ -1,96 +1,94 @@
 const { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('kilit')
-        .setDescription('Kanala üyelerin mesaj yazmasını kilitler veya kilidini açar.')
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('kilitle')
-                .setDescription('Kanalı kilitleyerek üyelerin mesaj yazmasını kısıtlar.')
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('kaldır')
-                .setDescription('Kilidi kaldırarak kanala mesaj yazılmasına izin verir.')
-        ),
-    run: async (client, interaction) => {
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) return interaction.reply({ content: "Kanalları Yönet Yetkin Yok!", ephemeral: true })
+  data: new SlashCommandBuilder()
+    .setName('kilit')
+    .setDescription('Kanala üyelerin mesaj yazmasını kilitler veya kilidini açar.')
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('kilitle')
+        .setDescription('Kanalı kilitleyerek üyelerin mesaj yazmasını kısıtlar.')
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('kaldır')
+        .setDescription('Kilidi kaldırarak kanala mesaj yazılmasına izin verir.')
+    ),
 
-        const getSubcommand = interaction.options.getSubcommand();
-
-        if (getSubcommand === 'kilitle') {
-            const channel = interaction.channel;
-            const guild = interaction.guild;
-            const member = interaction.member;
-
-            if (!channel.permissionsFor(guild.id).has(PermissionFlagsBits.SendMessages)) {
-                return interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setColor('Red')
-                            .setTitle(`#${channel.name} Kanalı Zaten Kilitli!`)
-                            .setDescription('Kilidi kaldırmak için `/kilit kaldır` komutunu kullanabilirsin.')
-                    ]
-                });
-            }
-
-            try {
-                await channel.permissionOverwrites.edit(guild.id, {
-                    SendMessages: false
-                });
-
-                await interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setColor('Green')
-                            .setTitle(`#${channel.name} Kanalı Başarıyla Kilitlendi!`)
-                            .setDescription('Kilidi kaldırmak için `/kilit kaldır` komutunu kullanabilirsin.')
-                    ]
-                });
-            } catch (error) {
-                console.error(error);
-                return interaction.reply({
-                    content: 'Kanal kilitleme işlemi sırasında bir hata oluştu.',
-                    ephemeral: true
-                });
-            }
-        } else if (getSubcommand === 'kaldır') {
-            const channel = interaction.channel;
-            const guild = interaction.guild;
-            const member = interaction.member;
-
-            if (channel.permissionsFor(guild.id).has(PermissionFlagsBits.SendMessages)) {
-                return interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setColor('Red')
-                            .setTitle(`#${channel.name} Kanalı Zaten Kilitli Değil!`)
-                            .setDescription('Kilitlemek için `/kilit kilitle` komutunu kullanabilirsin.')
-                    ]
-                });
-            }
-
-            try {
-                await channel.permissionOverwrites.edit(guild.id, {
-                    SendMessages: true
-                });
-
-                await interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setColor('Green')
-                            .setTitle(`#${channel.name} Kanalının Kilidi Başarıyla Kaldırıldı!`)
-                            .setDescription('Herhangi bir sorun yaşarsan destek alabilirsin.')
-                    ]
-                });
-            } catch (error) {
-                console.error(error);
-                return interaction.reply({
-                    content: 'Kanal kilidini kaldırma işlemi sırasında bir hata oluştu.',
-                    ephemeral: true
-                });
-            }
-        }
+  async execute(client, interaction) {
+    if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
+      return interaction.reply({
+        content: "❌ Bu komutu kullanmak için **Kanalları Yönet** yetkisine sahip olmalısın.",
+        ephemeral: true,
+      });
     }
+
+    const channel = interaction.channel;
+    const guild = interaction.guild;
+    const sub = interaction.options.getSubcommand();
+
+    if (sub === "kilitle") {
+      // Kanal zaten kilitli mi?
+      if (!channel.permissionsFor(guild.id).has(PermissionFlagsBits.SendMessages)) {
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("Red")
+              .setTitle(`#${channel.name} zaten kilitli!`)
+              .setDescription("Kilidi kaldırmak için `/kilit kaldır` komutunu kullanabilirsin."),
+          ],
+        });
+      }
+
+      try {
+        await channel.permissionOverwrites.edit(guild.id, { SendMessages: false });
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("Green")
+              .setTitle(`#${channel.name} başarıyla kilitlendi!`)
+              .setDescription("Kilidi kaldırmak için `/kilit kaldır` komutunu kullanabilirsin."),
+          ],
+        });
+      } catch (err) {
+        console.error(err);
+        return interaction.reply({
+          content: "❌ Kanal kilitlenirken bir hata oluştu.",
+          ephemeral: true,
+        });
+      }
+    }
+
+    if (sub === "kaldır") {
+      // Kanal zaten kilitli değilse
+      if (channel.permissionsFor(guild.id).has(PermissionFlagsBits.SendMessages)) {
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("Red")
+              .setTitle(`#${channel.name} zaten kilitli değil!`)
+              .setDescription("Kilitlemek için `/kilit kilitle` komutunu kullanabilirsin."),
+          ],
+        });
+      }
+
+      try {
+        await channel.permissionOverwrites.edit(guild.id, { SendMessages: null }); // eski haline döndür
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("Green")
+              .setTitle(`#${channel.name} kanalının kilidi kaldırıldı!`)
+              .setDescription("Artık üyeler bu kanala mesaj gönderebilir."),
+          ],
+        });
+      } catch (err) {
+        console.error(err);
+        return interaction.reply({
+          content: "❌ Kanal kilidini kaldırırken bir hata oluştu.",
+          ephemeral: true,
+        });
+      }
+    }
+  },
 };
