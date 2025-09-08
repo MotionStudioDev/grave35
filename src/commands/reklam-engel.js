@@ -1,41 +1,44 @@
-const { Client, EmbedBuilder, PermissionFlagsBits } = require("discord.js");
-const db = require("croxydb")
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require("discord.js");
+const db = require("croxydb");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("reklam-engel")
-        .setDescription("Reklam engel sistemini ayarlarsın."),
+        .setDescription("Reklam engel sistemini açar veya kapatır."),
 
     run: async (client, interaction) => {
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) return interaction.reply({ content: "Rolleri Yönet Yetkin Yok!", ephemeral: true })
-        const embed = new EmbedBuilder()
-            .setColor("Red")
-            .setDescription("✅ **Sistem Kapatıldı** \n Reklam algılandığında mesaj silinmeyecek.")
-        const embed2 = new EmbedBuilder()
-            .setColor("Red")
-            .setDescription("✅ **Sistem Açıldı** \n Reklam algılandığında mesaj silinecek ve kullanıcı uyarılacak.")
-
-        let reklam = db.fetch(`reklamengel_${interaction.guild.id}`);
-
-        if (reklam) {
-
-            db.delete(`reklamengel_${interaction.guild.id}`);
-            interaction.reply({ embeds: [embed], allowedMentions: { repliedUser: false } })
-
-            return
+        // Yetki kontrolü
+        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
+            return interaction.reply({ 
+                content: "❌ Bu komutu kullanmak için **Mesajları Yönet** yetkisine sahip olmalısın.", 
+                ephemeral: true 
+            });
         }
 
-        if (!reklam) {
+        // Veritabanı kontrol
+        const dataKey = `reklamengel_${interaction.guild.id}`;
+        const systemStatus = db.fetch(dataKey);
 
-            db.set(`reklamengel_${interaction.guild.id}`, true);
-            interaction.reply({ embeds: [embed2], allowedMentions: { repliedUser: false } })
+        if (systemStatus) {
+            // Varsa → kapat
+            db.delete(dataKey);
 
-            return
+            const embed = new EmbedBuilder()
+                .setColor("Red")
+                .setTitle("🚫 Reklam Engel Sistemi Kapatıldı")
+                .setDescription("Artık reklam mesajları engellenmeyecek.");
+
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        } else {
+            // Yoksa → aç
+            db.set(dataKey, true);
+
+            const embed = new EmbedBuilder()
+                .setColor("Green")
+                .setTitle("✅ Reklam Engel Sistemi Açıldı")
+                .setDescription("Reklam mesajları otomatik olarak silinecek ve kullanıcı uyarılacak.");
+
+            return interaction.reply({ embeds: [embed], ephemeral: true });
         }
-
-
-
     }
-
 };
