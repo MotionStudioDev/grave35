@@ -40,9 +40,7 @@ const token = process.env.token;
 const rest = new REST({ version: '10' }).setToken(token);
 
 // Koleksiyonlar
-client.commands = new Collection();
 client.slashcommands = new Collection();
-client.commandaliases = new Collection();
 
 const log = (x) => console.log(`[${moment().format("DD-MM-YYYY HH:mm:ss")}] ${x}`);
 
@@ -54,17 +52,17 @@ readdirSync('./src/commands').forEach(file => {
   client.slashcommands.set(command.data.name, command);
 });
 
-// ==== KOMUT YÜKLEME (Hem guild hem global) ====
+// ==== KOMUT YÜKLEME ====
 client.once(Events.ClientReady, async () => {
   try {
-    // Test sunucuna yükle (instant update)
+    // Test sunucuya yükle
     await rest.put(
       Routes.applicationGuildCommands(client.user.id, "1408511083232362547"), 
       { body: slashcommands }
     );
     log(`${slashcommands.length} komut test sunucuna yüklendi ✅`);
 
-    // Global yükle (yayılması 1 saat sürebilir)
+    // Global yükle
     await rest.put(
       Routes.applicationCommands(client.user.id),
       { body: slashcommands }
@@ -81,9 +79,9 @@ client.once(Events.ClientReady, async () => {
 readdirSync('./src/events').forEach(file => {
   const event = require(`./src/events/${file}`);
   if (event.once) {
-    client.once(event.name, (...args) => event.execute(...args));
+    client.once(event.name, (...args) => event.execute(...args, client));
   } else {
-    client.on(event.name, (...args) => event.execute(...args));
+    client.on(event.name, (...args) => event.execute(...args, client));
   }
 });
 
@@ -93,13 +91,9 @@ process.on("uncaughtException", e => console.log(e));
 process.on("uncaughtExceptionMonitor", e => console.log(e));
 
 // ==== OTOROL ====
-client.on("guildMemberAdd", (member) => {
-  const rolId = db.get(`otorol_${member.guild.id}`);
-  if (!rolId) return;
-
-  const rol = member.guild.roles.cache.get(rolId);
-  if (!rol) return db.delete(`otorol_${member.guild.id}`); // rol silinmişse db'den kaldır
-
+client.on("guildMemberAdd", member => {
+  const rol = db.get(`otorol_${member.guild.id}`);
+  if (!rol) return;
   member.roles.add(rol).catch(() => {});
 });
 
@@ -107,7 +101,7 @@ client.on("guildMemberAdd", (member) => {
 client.on("messageCreate", async (message) => {
   if (!message.guild || message.author.bot) return;
 
-  const reklamEngel = db.get(`reklamengel_${message.guild.id}`);
+  let reklamEngel = db.get(`reklamengel_${message.guild.id}`);
   if (!reklamEngel) return;
 
   const linkler = [
@@ -123,11 +117,9 @@ client.on("messageCreate", async (message) => {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("🚫 Reklam Engellendi!")
-        .setDescription(`<@${message.author.id}>, bu sunucuda reklam yapmak yasak!`)
+        .setDescription(`<@${message.author.id}>, reklam yapmak yasak.`)
         .setTimestamp();
-
-      const uyari = await message.channel.send({ embeds: [embed] });
-      setTimeout(() => uyari.delete().catch(() => {}), 5000); // 5 saniye sonra mesajı sil
+      await message.channel.send({ embeds: [embed] });
     } catch (err) {
       console.error("Reklam engelleme hatası:", err);
     }
