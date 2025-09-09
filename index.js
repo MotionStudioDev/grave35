@@ -93,9 +93,13 @@ process.on("uncaughtException", e => console.log(e));
 process.on("uncaughtExceptionMonitor", e => console.log(e));
 
 // ==== OTOROL ====
-client.on("guildMemberAdd", member => {
-  const rol = db.get(`otorol_${member.guild.id}`);
-  if (!rol) return;
+client.on("guildMemberAdd", (member) => {
+  const rolId = db.get(`otorol_${member.guild.id}`);
+  if (!rolId) return;
+
+  const rol = member.guild.roles.cache.get(rolId);
+  if (!rol) return db.delete(`otorol_${member.guild.id}`); // rol silinmişse db'den kaldır
+
   member.roles.add(rol).catch(() => {});
 });
 
@@ -103,7 +107,7 @@ client.on("guildMemberAdd", member => {
 client.on("messageCreate", async (message) => {
   if (!message.guild || message.author.bot) return;
 
-  let reklamEngel = db.fetch(`reklamengel_${message.guild.id}`);
+  const reklamEngel = db.get(`reklamengel_${message.guild.id}`);
   if (!reklamEngel) return;
 
   const linkler = [
@@ -119,9 +123,11 @@ client.on("messageCreate", async (message) => {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("🚫 Reklam Engellendi!")
-        .setDescription(`<@${message.author.id}>, reklam yapmak yasak.`)
+        .setDescription(`<@${message.author.id}>, bu sunucuda reklam yapmak yasak!`)
         .setTimestamp();
-      await message.channel.send({ embeds: [embed] });
+
+      const uyari = await message.channel.send({ embeds: [embed] });
+      setTimeout(() => uyari.delete().catch(() => {}), 5000); // 5 saniye sonra mesajı sil
     } catch (err) {
       console.error("Reklam engelleme hatası:", err);
     }
