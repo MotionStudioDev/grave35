@@ -1,25 +1,17 @@
-// src/commands/temizle.js
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("temizle")
-    .setDescription("Belirtilen miktarda mesajı siler.")
+    .setDescription("Belirtilen miktarda mesaj siler.")
     .addIntegerOption(option =>
       option
         .setName("miktar")
-        .setDescription("Kaç mesaj silineceğini belirleyin (1-100 arası).")
+        .setDescription("Silinecek mesaj sayısı (1-100 arası).")
         .setRequired(true)
-    )
-    .addChannelOption(option =>
-      option
-        .setName("kanal")
-        .setDescription("Mesajların silineceği kanalı belirleyin.")
-        .setRequired(false)
     ),
 
-  async execute(client, interaction) {
-    // Yetki kontrolü
+  async execute(interaction, client) {
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
       return interaction.reply({
         content: "❌ Bu komutu kullanmak için **Mesajları Yönet** yetkisine sahip olmalısınız.",
@@ -27,34 +19,34 @@ module.exports = {
       });
     }
 
-    const miktar = interaction.options.getInteger("miktar");
-    const kanal = interaction.options.getChannel("kanal") || interaction.channel;
+    const amount = interaction.options.getInteger("miktar");
 
-    if (miktar < 1 || miktar > 100) {
+    if (amount < 1 || amount > 100) {
       return interaction.reply({
-        content: "❌ Silinecek mesaj miktarı **1 ile 100** arasında olmalıdır.",
+        content: "❌ Lütfen **1 ile 100** arasında bir sayı girin.",
         ephemeral: true,
       });
     }
 
+    await interaction.deferReply({ ephemeral: true });
+
     try {
-      // Mesajları çek
-      const fetched = await kanal.messages.fetch({ limit: miktar });
-      const messagesToDelete = fetched.filter(msg => !msg.pinned);
+      const deleted = await interaction.channel.bulkDelete(amount, true);
 
-      // Sil
-      const deleted = await kanal.bulkDelete(messagesToDelete, true);
-
-      const embed = new EmbedBuilder()
-        .setColor(0x57F287)
-        .setDescription(`✅ Başarıyla **${deleted.size}** mesaj silindi.`);
-
-      await interaction.reply({ embeds: [embed], ephemeral: true });
-    } catch (error) {
-      console.error(error);
-      await interaction.reply({
-        content: "❌ Mesajları silerken bir hata oluştu. Not: 14 günden eski mesajlar silinemez.",
-        ephemeral: true,
+      return interaction.editReply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor("Blue")
+            .setTitle("🧹 Mesajlar Temizlendi")
+            .setDescription(`✅ **${deleted.size}** mesaj başarıyla silindi.`)
+            .setFooter({ text: `Komutu kullanan: ${interaction.user.tag}` })
+            .setTimestamp(),
+        ],
+      });
+    } catch (err) {
+      console.error("[TEMİZLE KOMUTU HATASI]", err);
+      return interaction.editReply({
+        content: "❌ Mesajları silerken bir hata oluştu. (14 günden eski mesajlar silinemez!)",
       });
     }
   },
