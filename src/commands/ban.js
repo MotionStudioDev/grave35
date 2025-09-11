@@ -1,4 +1,3 @@
-// src/commands/ban.js
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 
 module.exports = {
@@ -18,7 +17,7 @@ module.exports = {
         .setRequired(false)
     ),
 
-  async execute(client, interaction) {
+  async execute(interaction, client) {
     // Yetki kontrolü
     if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
       return interaction.reply({
@@ -30,7 +29,6 @@ module.exports = {
     const user = interaction.options.getUser("kullanıcı");
     const reason = interaction.options.getString("sebep") || "Sebep belirtilmedi.";
 
-    // deferReply → Discord'a cevap beklemesini söylüyoruz
     await interaction.deferReply({ ephemeral: true });
 
     try {
@@ -49,17 +47,34 @@ module.exports = {
         });
       }
 
+      // Kendini banlamasın
+      if (member.id === interaction.user.id) {
+        return interaction.editReply({
+          content: "❌ Kendini banlayamazsın.",
+        });
+      }
+
+      // Botu banlamasın
+      if (member.id === client.user.id) {
+        return interaction.editReply({
+          content: "❌ Beni banlayamazsın 😅",
+        });
+      }
+
       await member.ban({ reason });
 
       return interaction.editReply({
         embeds: [
           new EmbedBuilder()
             .setColor("Red")
-            .setDescription(`✅ **${user.tag}** kullanıcısı banlandı.\n**Sebep:** ${reason}`),
+            .setTitle("🚫 Kullanıcı Banlandı")
+            .setDescription(`**${user.tag}** banlandı.\n\n**Sebep:** ${reason}`)
+            .setFooter({ text: `Banlayan: ${interaction.user.tag}` })
+            .setTimestamp(),
         ],
       });
     } catch (error) {
-      console.error(error);
+      console.error("[BAN KOMUTU HATASI]", error);
       return interaction.editReply({
         content: "❌ Kullanıcıyı banlarken bir hata oluştu.",
       });
