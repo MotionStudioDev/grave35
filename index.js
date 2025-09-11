@@ -91,12 +91,18 @@ process.on("uncaughtException", e => console.log(e));
 process.on("uncaughtExceptionMonitor", e => console.log(e));
 
 // ==== OTOROL ====
+// ==== OTOROL ====
 client.on("guildMemberAdd", member => {
   const rol = db.get(`otorol_${member.guild.id}`);
   if (!rol) return;
-  member.roles.add(rol).catch(() => {});
+
+  // Botun yetkisi yoksa hata yakalayıp sessiz geçelim
+  member.roles.add(rol).catch(err => {
+    console.error(`[OTOROL] ${member.user.tag} için rol verilemedi:`, err);
+  });
 });
 
+// ==== REKLAM ENGEL ====
 // ==== REKLAM ENGEL ====
 client.on("messageCreate", async (message) => {
   if (!message.guild || message.author.bot) return;
@@ -114,17 +120,20 @@ client.on("messageCreate", async (message) => {
 
     try {
       await message.delete();
+
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("🚫 Reklam Engellendi!")
-        .setDescription(`<@${message.author.id}>, reklam yapmak yasak.`)
+        .setDescription(`<@${message.author.id}>, reklam yapmak yasaktır.`)
         .setTimestamp();
+
       await message.channel.send({ embeds: [embed] });
     } catch (err) {
-      console.error("Reklam engelleme hatası:", err);
+      console.error("[REKLAM ENGEL] Mesaj silinirken hata:", err);
     }
   }
 });
+
 
 // ==== BOT LOGIN ====
 client.login(token);
