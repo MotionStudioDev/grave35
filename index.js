@@ -55,14 +55,12 @@ readdirSync('./src/commands').forEach(file => {
 // ==== KOMUT YÜKLEME ====
 client.once(Events.ClientReady, async () => {
   try {
-    // Test sunucuya yükle
     await rest.put(
       Routes.applicationGuildCommands(client.user.id, "1408511083232362547"), 
       { body: slashcommands }
     );
     log(`${slashcommands.length} komut test sunucuna yüklendi ✅`);
 
-    // Global yükle
     await rest.put(
       Routes.applicationCommands(client.user.id),
       { body: slashcommands }
@@ -75,13 +73,28 @@ client.once(Events.ClientReady, async () => {
   log(`${client.user.username} aktif edildi!`);
 });
 
-// ==== EVENT HANDLER ====
-readdirSync('./src/events').forEach(file => {
-  const event = require(`./src/events/${file}`);
-  if (event.once) {
-    client.once(event.name, (...args) => event.execute(...args, client));
-  } else {
-    client.on(event.name, (...args) => event.execute(...args, client));
+// ==== KOMUT ÇALIŞTIRMA ====
+client.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const command = client.slashcommands.get(interaction.commandName);
+  if (!command) return;
+
+  try {
+    if (typeof command.execute === "function") {
+      await command.execute(interaction, client);
+    } else if (typeof command.run === "function") {
+      await command.run(interaction, client);
+    } else {
+      throw new Error(`Komut ${interaction.commandName} içinde execute/run fonksiyonu yok.`);
+    }
+  } catch (error) {
+    console.error(`[ERROR] ${interaction.commandName}:`, error);
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({ content: "❌ Komut çalıştırılırken bir hata oluştu.", ephemeral: true });
+    } else {
+      await interaction.editReply({ content: "❌ Komut çalıştırılırken bir hata oluştu." });
+    }
   }
 });
 
@@ -91,18 +104,14 @@ process.on("uncaughtException", e => console.log(e));
 process.on("uncaughtExceptionMonitor", e => console.log(e));
 
 // ==== OTOROL ====
-// ==== OTOROL ====
 client.on("guildMemberAdd", member => {
   const rol = db.get(`otorol_${member.guild.id}`);
   if (!rol) return;
-
-  // Botun yetkisi yoksa hata yakalayıp sessiz geçelim
   member.roles.add(rol).catch(err => {
     console.error(`[OTOROL] ${member.user.tag} için rol verilemedi:`, err);
   });
 });
 
-// ==== REKLAM ENGEL ====
 // ==== REKLAM ENGEL ====
 client.on("messageCreate", async (message) => {
   if (!message.guild || message.author.bot) return;
@@ -120,13 +129,11 @@ client.on("messageCreate", async (message) => {
 
     try {
       await message.delete();
-
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("🚫 Reklam Engellendi!")
         .setDescription(`<@${message.author.id}>, reklam yapmak yasaktır.`)
         .setTimestamp();
-
       await message.channel.send({ embeds: [embed] });
     } catch (err) {
       console.error("[REKLAM ENGEL] Mesaj silinirken hata:", err);
@@ -134,14 +141,12 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-
 // ==== BOT LOGIN ====
 client.login(token);
 
 // ==== EXPRESS (Render için) ====
 const app = express();
 const port = 3000;
-
 app.get('/', (req, res) => res.sendStatus(200));
 app.listen(port, () => {
   console.log(`Sunucu ${port} numaralı bağlantı noktasında yürütülüyor.`);
