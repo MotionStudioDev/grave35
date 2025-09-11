@@ -1,21 +1,26 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("ping")
-    .setDescription("Botun gecikmesini ölçer."),
-  
-  async execute(client, interaction) {
-    const sent = await interaction.reply({ 
-      content: "🏓 Ping hesaplanıyor...", 
-      fetchReply: true, 
-      ephemeral: true 
-    });
+    .setDescription("Botun ping değerini gösterir."),
 
-    const ping = sent.createdTimestamp - interaction.createdTimestamp;
+  async execute(interaction, client) {
+    const apiPing = client.ws.ping;
+    const sent = await interaction.deferReply({ fetchReply: true, ephemeral: true });
 
-    await interaction.editReply({
-      content: `🏓 Pong! Bot gecikmesi: **${ping}ms** | WebSocket: **${client.ws.ping}ms**`
-    });
-  }
+    const botPing = sent.createdTimestamp - interaction.createdTimestamp;
+
+    const embed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle("Grave - Ping!")
+      .setDescription(`
+**Bot Gecikmesi:** \`${botPing}ms\`
+**Discord API Gecikmesi:** \`${apiPing}ms\`
+      `)
+      .setTimestamp()
+      .setFooter({ text: `İsteyen: ${interaction.user.tag}` });
+
+    await interaction.editReply({ embeds: [embed] });
+  },
 };
