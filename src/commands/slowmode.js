@@ -6,7 +6,7 @@ module.exports = {
     .setDescription("Kanala yavaş mod ekler veya kaldırır.")
     .addIntegerOption(option =>
       option.setName("süre")
-        .setDescription("Yavaş mod süresi (saniye)")
+        .setDescription("Yavaş mod süresi (saniye, 0 = kapalı)")
         .setRequired(true)
     ),
 
@@ -18,12 +18,17 @@ module.exports = {
     const seconds = interaction.options.getInteger("süre");
     const channel = interaction.channel;
 
+    // Şu anki slowmode ile aynıysa hata verme
+    if (channel.rateLimitPerUser === seconds) {
+      return interaction.reply({ content: `⚠️ Bu kanal zaten **${seconds} saniye** slowmode ayarlı.`, ephemeral: true });
+    }
+
     try {
       await channel.setRateLimitPerUser(seconds);
       await interaction.reply(`✅ Kanal yavaş modu **${seconds} saniye** olarak ayarlandı.`);
     } catch (err) {
       console.error(err);
-      await interaction.reply({ content: "❌ Bir hata oluştu.", ephemeral: true });
+      await interaction.reply({ content: "❌ Bir hata oluştu, yetkileri kontrol et.", ephemeral: true });
     }
   }
 };
