@@ -185,3 +185,163 @@ client.on("messageReactionRemove", async (reaction, user) => {
   const member = await reaction.message.guild.members.fetch(user.id);
   member.roles.remove(rolID).catch(console.error);
 });
+/////////////////////////LOG SİSTEMLERİ///////////////////////////
+//TEPKİ ROL
+client.on("messageReactionAdd", async (reaction, user) => {
+  const veri = db.get(`tepkirol_${reaction.message.id}`);
+  if (!veri || user.bot) return;
+
+  const emojiKey = reaction.emoji.id
+    ? `<:${reaction.emoji.name}:${reaction.emoji.id}>`
+    : reaction.emoji.name;
+
+  const rolID = veri.roller[emojiKey];
+  if (!rolID) return;
+
+  const member = await reaction.message.guild.members.fetch(user.id);
+  await member.roles.add(rolID).catch(console.error);
+
+  const logID = db.get(`tepkilog_${reaction.message.guild.id}`);
+  if (!logID) return;
+
+  const channel = reaction.message.guild.channels.cache.get(logID);
+  if (!channel) return;
+
+  const embed = new EmbedBuilder()
+    .setColor("Green")
+    .setTitle("🎯 Tepki Rol Verildi")
+    .setDescription(`${user.tag} → ${emojiKey} → <@&${rolID}>`)
+    .setTimestamp();
+
+  channel.send({ embeds: [embed] });
+});
+////////BAN LOG
+client.on("guildBanAdd", async ban => {
+  const logID = db.get(`banlog_${ban.guild.id}`);
+  if (!logID) return;
+
+  const channel = ban.guild.channels.cache.get(logID);
+  if (!channel) return;
+
+  const embed = new EmbedBuilder()
+    .setColor("Red")
+    .setTitle("🔨 Ban Log")
+    .setDescription(`${ban.user.tag} sunucudan banlandı.`)
+    .setTimestamp();
+
+  channel.send({ embeds: [embed] });
+});
+////KİCK LOG
+client.on("guildMemberRemove", async member => {
+  const logID = db.get(`kicklog_${member.guild.id}`);
+  if (!logID) return;
+
+  const channel = member.guild.channels.cache.get(logID);
+  if (!channel) return;
+
+  const embed = new EmbedBuilder()
+    .setColor("Orange")
+    .setTitle("👢 Kick Log")
+    .setDescription(`${member.user.tag} sunucudan ayrıldı veya kicklendi.`)
+    .setTimestamp();
+
+  channel.send({ embeds: [embed] });
+});
+/////SES LOG 
+client.on("voiceStateUpdate", async (oldState, newState) => {
+  const logID = db.get(`seslog_${newState.guild.id}`);
+  if (!logID) return;
+
+  const channel = newState.guild.channels.cache.get(logID);
+  if (!channel) return;
+
+  const user = newState.member.user;
+  let action = "";
+
+  if (!oldState.channelId && newState.channelId) {
+    action = `🔊 **${user.tag}** ses kanalına katıldı: <#${newState.channelId}>`;
+  } else if (oldState.channelId && !newState.channelId) {
+    action = `🔇 **${user.tag}** ses kanalından ayrıldı: <#${oldState.channelId}>`;
+  } else if (oldState.channelId !== newState.channelId) {
+    action = `🔁 **${user.tag}** ses kanalını değiştirdi: <#${oldState.channelId}> → <#${newState.channelId}>`;
+  }
+
+  if (action) {
+    const embed = new EmbedBuilder()
+      .setColor("Purple")
+      .setTitle("🎙️ Ses Log")
+      .setDescription(action)
+      .setTimestamp();
+
+    channel.send({ embeds: [embed] });
+  }
+});
+///// ROL LOG
+client.on("guildMemberUpdate", async (oldMember, newMember) => {
+  const logID = db.get(`rollog_${newMember.guild.id}`);
+  if (!logID) return;
+
+  const channel = newMember.guild.channels.cache.get(logID);
+  if (!channel) return;
+
+  const addedRoles = newMember.roles.cache.filter(role => !oldMember.roles.cache.has(role.id));
+  const removedRoles = oldMember.roles.cache.filter(role => !newMember.roles.cache.has(role.id));
+
+  const embed = new EmbedBuilder()
+    .setColor("Gold")
+    .setTitle("🎭 Rol Log")
+    .setDescription(`**${newMember.user.tag}** için rol değişikliği:`)
+    .setTimestamp();
+
+  if (addedRoles.size > 0) {
+    embed.addFields({ name: "✅ Eklenen Roller", value: addedRoles.map(r => `<@&${r.id}>`).join(", ") });
+  }
+
+  if (removedRoles.size > 0) {
+    embed.addFields({ name: "❌ Silinen Roller", value: removedRoles.map(r => `<@&${r.id}>`).join(", ") });
+  }
+
+  if (addedRoles.size > 0 || removedRoles.size > 0) {
+    channel.send({ embeds: [embed] });
+  }
+});
+///// MOD LOG
+client.on("interactionCreate", async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const logID = db.get(`modlog_${interaction.guild.id}`);
+  if (!logID) return;
+
+  const logChannel = interaction.guild.channels.cache.get(logID);
+  if (!logChannel) return;
+
+  const embed = new EmbedBuilder()
+    .setColor("Blue")
+    .setTitle("🛠️ Mod Komutu Kullanıldı")
+    .setDescription(`**Komut:** /${interaction.commandName}\n**Kullanıcı:** ${interaction.user.tag}`)
+    .setTimestamp();
+
+  logChannel.send({ embeds: [embed] });
+});
+///İSİM LOG 
+client.on("guildMemberUpdate", async (oldMember, newMember) => {
+  const logID = db.get(`isimlog_${newMember.guild.id}`);
+  if (!logID) return;
+
+  const channel = newMember.guild.channels.cache.get(logID);
+  if (!channel) return;
+
+  if (oldMember.nickname !== newMember.nickname || oldMember.user.username !== newMember.user.username) {
+    const embed = new EmbedBuilder()
+      .setColor("Aqua")
+      .setTitle("📝 İsim Değişikliği")
+      .setDescription(`**Kullanıcı:** ${newMember.user.tag}`)
+      .addFields(
+        { name: "Eski İsim", value: oldMember.nickname || oldMember.user.username, inline: true },
+        { name: "Yeni İsim", value: newMember.nickname || newMember.user.username, inline: true }
+      )
+      .setTimestamp();
+
+    channel.send({ embeds: [embed] });
+  }
+});
