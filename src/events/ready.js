@@ -1,23 +1,41 @@
-const { ActivityType, Events } = require("discord.js");
+const { Events, ActivityType, Routes } = require("discord.js");
 
 module.exports = {
   name: Events.ClientReady,
   once: true,
-  execute(client) {
-    let activities = [ 
-      `/yardım - Grave yeniden sizlerle!`, 
-      `${client.user.username} - v1.0.7` 
-    ], 
-    i = 0;
+  async execute(client, rest, slashcommands, log) {
+    try {
+      // Test sunucusuna komut yükle
+      await rest.put(
+        Routes.applicationGuildCommands(client.user.id, "1408511083232362547"),
+        { body: slashcommands }
+      );
+      log(`${slashcommands.length} komut test sunucuna yüklendi ✅`);
 
-    setInterval(
-      () => client.user.setActivity({ 
-        name: activities[i++ % activities.length], 
-        type: ActivityType.Listening 
-      }), 
-      10000 // 10 saniye
-    );
+      // Global komut yükle
+      await rest.put(
+        Routes.applicationCommands(client.user.id),
+        { body: slashcommands }
+      );
+      log(`${slashcommands.length} komut global yüklendi 🌍`);
+    } catch (error) {
+      console.error(error);
+    }
 
-    client.user.setStatus("dnd"); // 🔴 Rahatsız Etmeyin
-  }
+    // Durum ayarlama
+    let activities = [
+      { name: "Bakım Modu Aktif - Grave", type: ActivityType.Playing },
+      { name: `${client.user.username}`, type: ActivityType.Playing }
+    ];
+    let i = 0;
+
+    setInterval(() => {
+      client.user.setPresence({
+        activities: [activities[i++ % activities.length]],
+        status: "dnd" // çevrimdışı yerine rahatsız etmeyin
+      });
+    }, 10000); // 10 saniyede bir değişir
+
+    log(`${client.user.username} aktif edildi!`);
+  },
 };
