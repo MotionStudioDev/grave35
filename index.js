@@ -453,30 +453,3 @@ client.on("guildMemberRemove", async member => {
     }
   }
 });
-///// karşılama log kanalına atma
-const logID = db.get(`karsilamalog_${member.guild.id}`);
-if (logID) {
-  const logChannel = member.guild.channels.cache.get(logID);
-  if (logChannel) {
-    const logEmbed = new EmbedBuilder()
-      .setColor("Green")
-      .setTitle("📥 Karşılama Log")
-      .setDescription(`<@${member.id}> sunucuya katıldı.`)
-      .setThumbnail(member.user.displayAvatarURL())
-      .setTimestamp();
-    logChannel.send({ embeds: [logEmbed] });
-  }
-}
-const logID = db.get(`ayrilmalog_${member.guild.id}`);
-if (logID) {
-  const logChannel = member.guild.channels.cache.get(logID);
-  if (logChannel) {
-    const logEmbed = new EmbedBuilder()
-      .setColor("Red")
-      .setTitle("📤 Ayrılma Log")
-      .setDescription(`<@${member.id}> sunucudan ayrıldı.`)
-      .setThumbnail(member.user.displayAvatarURL())
-      .setTimestamp();
-    logChannel.send({ embeds: [logEmbed] });
-  }
-}
