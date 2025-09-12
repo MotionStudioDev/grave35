@@ -140,7 +140,7 @@ client.on("messageCreate", async (message) => {
     }
   }
 });
-
+require("./src/events/küfürEngel")(client);
 // ==== BOT LOGIN ====
 client.login(token);
 
