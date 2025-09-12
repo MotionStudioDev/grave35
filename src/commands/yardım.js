@@ -24,7 +24,7 @@ module.exports = {
         },
         {
           name: "⚙️ Sistem",
-          value: "`oto-rol`, `reklam-engel`, `kufur-engel`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`",
+          value: "`oto-rol`, `reklam-engel`, `kufur-engel`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`, `karşılama-sistemi`",
         },
         {
           name: "📊 Genel",
