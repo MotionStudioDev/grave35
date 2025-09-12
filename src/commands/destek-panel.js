@@ -1,25 +1,28 @@
+// src/commands/destek-panel.js
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("destek-panel")
-    .setDescription("Destek talep panelini kurar.")
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator), // Her sunucuda adminler kullanabilir
+    .setDescription("Destek panelini kurar.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction, client) {
     const embed = new EmbedBuilder()
       .setColor("Blurple")
       .setTitle("🎫 Destek Talebi")
-      .setDescription("Aşağıdaki butona basarak bir destek talebi oluşturabilirsin.\n\n📌 **Şikayet, öneri veya isteklerini yazabilirsin.**")
-      .setFooter({ text: `${interaction.guild.name} Destek Sistemi`, iconURL: interaction.guild.iconURL() });
+      .setDescription("Destek talebi açmak için aşağıdaki butona basın.")
+      .setFooter({ text: "Grave Bot Destek Sistemi" })
+      .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId("destek_olustur")
-        .setLabel("📩 Destek Talebi Oluştur")
+        .setLabel("📩 Talep Aç")
         .setStyle(ButtonStyle.Primary)
     );
 
-    await interaction.reply({ embeds: [embed], components: [row] });
+    await interaction.reply({ content: "✅ Panel kuruldu!", ephemeral: true });
+    await interaction.channel.send({ embeds: [embed], components: [row] });
   },
 };
