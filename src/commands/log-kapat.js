@@ -16,7 +16,9 @@ module.exports = {
           { name: "Ses Log", value: "ses" },
           { name: "Rol Log", value: "rol" },
           { name: "Mod Log", value: "mod" },
-          { name: "İsim Log", value: "isim" }
+          { name: "İsim Log", value: "isim" },
+          { name: "Karşılama Log", value: "karsilama" },
+          { name: "Ayrılma Log", value: "ayrilma" }
         )
     ),
 
