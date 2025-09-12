@@ -13,7 +13,7 @@ module.exports = {
     for (const tür of logTürleri) {
       const kanalID = db.get(`${tür}log_${interaction.guild.id}`);
       if (kanalID) {
-        aktifLoglar.push(`• **${tür}-log** → <#${kanalID}>`);
+        aktifLoglar.push(`• \`${tür}-log\` → <#${kanalID}>`);
       }
     }
 
