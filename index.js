@@ -185,6 +185,42 @@ client.on("messageReactionRemove", async (reaction, user) => {
   const member = await reaction.message.guild.members.fetch(user.id);
   member.roles.remove(rolID).catch(console.error);
 });
+//////
+client.on("messageReactionRemove", async (reaction, user) => {
+  if (user.bot || !reaction.message.guild) return;
+
+  const veri = db.get(`tepkirol_${reaction.message.id}`);
+  if (!veri) return;
+
+  const emojiKey = reaction.emoji.id
+    ? `<:${reaction.emoji.name}:${reaction.emoji.id}>`
+    : reaction.emoji.name;
+
+  const rolID = veri.roller[emojiKey];
+  if (!rolID) return;
+
+  const member = await reaction.message.guild.members.fetch(user.id);
+  await member.roles.remove(rolID).catch(console.error);
+
+  // 🔔 Log embed gönder
+  const logID = db.get(`tepkilog_${reaction.message.guild.id}`);
+  if (!logID) return;
+
+  const logChannel = reaction.message.guild.channels.cache.get(logID);
+  if (!logChannel) return;
+
+  const embed = new EmbedBuilder()
+    .setColor("Red")
+    .setTitle("🚫 Tepki Rol Alındı")
+    .addFields(
+      { name: "Kullanıcı", value: `${user.tag} (<@${user.id}>)`, inline: true },
+      { name: "Emoji", value: emojiKey, inline: true },
+      { name: "Alınan Rol", value: `<@&${rolID}>`, inline: true }
+    )
+    .setTimestamp();
+
+  logChannel.send({ embeds: [embed] });
+});
 /////////////////////////LOG SİSTEMLERİ///////////////////////////
 //TEPKİ ROL
 client.on("messageReactionAdd", async (reaction, user) => {
