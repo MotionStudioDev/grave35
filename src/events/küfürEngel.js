@@ -20,7 +20,7 @@ module.exports = client => {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("🚫 Küfür Tespit Edildi")
-        .setDescription(`<@${message.author.id}> küfürlü mesaj gönderdi.\n**Bu uyarı 7 saniye içinde silinecektir.**`)
+        .setDescription(`<@${message.author.id}> küfürlü mesaj gönderdi.\n**Bu uyarı 3 saniye içinde silinecektir.**`)
         .addFields(
           { name: "Uyarı Sayısı", value: `${uyarıSayısı}` }
         )
@@ -29,10 +29,10 @@ module.exports = client => {
 
       const uyarıMesajı = await message.channel.send({ embeds: [embed] }).catch(() => {});
 
-      // ⏱️ 7 saniye sonra uyarı embed’ini sil
+      // ⏱️ 3 saniye sonra uyarı embed’ini sil
       setTimeout(() => {
         if (uyarıMesajı) uyarıMesajı.delete().catch(() => {});
-      }, 7000);
+      }, 3000);
 
       const logID = db.get(`kufurlog_${message.guild.id}`);
       if (logID) {
