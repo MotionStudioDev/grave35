@@ -20,15 +20,15 @@ module.exports = {
       .addFields(
         {
           name: "🔨 Moderasyon",
-          value: "`/ban`, `/kick`, `/unban`, `/kilit kilitle`, `/kilit kaldır`, `/temizle`, `/slowmode`",
+          value: "`ban`, `kick`, `unban`, `kilit kilitle`, `kilit kaldır`, `temizle`, `slowmode`",
         },
         {
           name: "⚙️ Sistem",
-          value: "`/oto-rol`, `/reklam-engel`, `kufur-engel`",
+          value: "`oto-rol`, `reklam-engel`, `kufur-engel`, `tepkirol`",
         },
         {
           name: "📊 Genel",
-          value: "`/ping`, `/istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`",
+          value: "`ping`, `istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`",
         }
       )
       .setFooter({ 
