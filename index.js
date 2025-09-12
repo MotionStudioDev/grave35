@@ -151,3 +151,37 @@ app.get('/', (req, res) => res.sendStatus(200));
 app.listen(port, () => {
   console.log(`Sunucu ${port} numaralı bağlantı noktasında yürütülüyor.`);
 });
+//////////////////////////////////////////////////////
+client.on("messageReactionAdd", async (reaction, user) => {
+  if (user.bot || !reaction.message.guild) return;
+
+  const veri = db.get(`tepkirol_${reaction.message.id}`);
+  if (!veri) return;
+
+  const emojiKey = reaction.emoji.id
+    ? `<:${reaction.emoji.name}:${reaction.emoji.id}>`
+    : reaction.emoji.name;
+
+  const rolID = veri.roller[emojiKey];
+  if (!rolID) return;
+
+  const member = await reaction.message.guild.members.fetch(user.id);
+  member.roles.add(rolID).catch(console.error);
+});
+
+client.on("messageReactionRemove", async (reaction, user) => {
+  if (user.bot || !reaction.message.guild) return;
+
+  const veri = db.get(`tepkirol_${reaction.message.id}`);
+  if (!veri) return;
+
+  const emojiKey = reaction.emoji.id
+    ? `<:${reaction.emoji.name}:${reaction.emoji.id}>`
+    : reaction.emoji.name;
+
+  const rolID = veri.roller[emojiKey];
+  if (!rolID) return;
+
+  const member = await reaction.message.guild.members.fetch(user.id);
+  member.roles.remove(rolID).catch(console.error);
+});
