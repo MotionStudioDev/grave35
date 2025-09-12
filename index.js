@@ -497,9 +497,10 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({ content: "❌ Zaten açık bir destek talebin var!", ephemeral: true });
       }
 
+      // Kanal oluştur
       const channel = await interaction.guild.channels.create({
         name: `destek-${interaction.user.username}`,
-        type: 0, // text channel
+        type: 0, // GUILD_TEXT
         permissionOverwrites: [
           {
             id: interaction.guild.id,
@@ -508,17 +509,18 @@ client.on(Events.InteractionCreate, async interaction => {
           {
             id: interaction.user.id,
             allow: ["ViewChannel", "SendMessages", "ReadMessageHistory"],
-          }
+          },
         ],
       });
 
+      // Embed
       const embed = new EmbedBuilder()
         .setColor("Green")
         .setTitle("📌 Destek Talebi Açıldı")
-        .setDescription(`Merhaba <@${interaction.user.id}> 👋\n\nBuradan yetkililere şikayetini, isteğini veya önerini yazabilirsin.`)
-        .setFooter({ text: "Kapatmak için aşağıdaki butonu kullan." })
+        .setDescription(`Merhaba <@${interaction.user.id}> 👋\n\nBuradan yetkililere şikayetini, isteğini veya önerini yazabilirsin.\n\nTalebi kapatmak için aşağıdaki butonu kullanabilirsin.`)
         .setTimestamp();
 
+      // ❌ Kapat butonu
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId("destek_kapat")
@@ -526,7 +528,14 @@ client.on(Events.InteractionCreate, async interaction => {
           .setStyle(ButtonStyle.Danger)
       );
 
-      await channel.send({ content: `<@${interaction.user.id}>`, embeds: [embed], components: [row] });
+      // Kanal içine mesaj at (buton burada çıkacak)
+      await channel.send({
+        content: `<@${interaction.user.id}> burası senin özel destek talebin.`,
+        embeds: [embed],
+        components: [row],
+      });
+
+      // Kullanıcıya bilgilendirme
       await interaction.reply({ content: `✅ Talebin açıldı: ${channel}`, ephemeral: true });
     }
 
