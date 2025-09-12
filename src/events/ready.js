@@ -22,19 +22,26 @@ module.exports = {
       console.error(error);
     }
 
-    // Durum ayarlama
+    // === Bot Durumu ===
     let activities = [
       { name: "Bakım Modu Aktif - Grave", type: ActivityType.Playing },
       { name: `${client.user.username}`, type: ActivityType.Playing }
     ];
     let i = 0;
 
+    // Başlangıçta direkt ayarla
+    client.user.setPresence({
+      activities: [activities[0]],
+      status: "dnd"
+    });
+
+    // 10 saniyede bir değiştir
     setInterval(() => {
       client.user.setPresence({
         activities: [activities[i++ % activities.length]],
-        status: "dnd" // çevrimdışı yerine rahatsız etmeyin
+        status: "dnd"
       });
-    }, 10000); // 10 saniyede bir değişir
+    }, 10000);
 
     log(`${client.user.username} aktif edildi!`);
   },
