@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const db = require("croxydb");
 
 module.exports = {
@@ -30,6 +30,17 @@ module.exports = {
     const kanal = interaction.options.getChannel("kanal");
 
     db.set(`${tür}log_${interaction.guild.id}`, kanal.id);
-    await interaction.reply({ content: `✅ ${tür}-log kanalı <#${kanal.id}> olarak ayarlandı.`, ephemeral: true });
+
+    const embed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle("✅ Log Kanalı Ayarlandı")
+      .addFields(
+        { name: "Log Türü", value: `\`${tür}-log\``, inline: true },
+        { name: "Kanal", value: `<#${kanal.id}>`, inline: true }
+      )
+      .setFooter({ text: `Sunucu: ${interaction.guild.name}` })
+      .setTimestamp();
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   }
 };
