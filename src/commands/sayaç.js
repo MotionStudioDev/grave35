@@ -33,15 +33,22 @@ module.exports = {
 
     if (durum === "kapat") {
       if (!db.has(key)) {
-        return interaction.reply({ content: "❌ Sayaç zaten aktif değil.", ephemeral: true });
+        const embed = new EmbedBuilder()
+          .setColor("Red")
+          .setTitle("❌ Sayaç Zaten Kapalı")
+          .setDescription("Bu sunucuda aktif sayaç sistemi bulunmuyor.")
+          .setFooter({ text: `Sunucu: ${interaction.guild.name}` })
+          .setTimestamp();
+
+        return interaction.reply({ embeds: [embed], ephemeral: true });
       }
 
       db.delete(key);
 
       const embed = new EmbedBuilder()
-        .setColor("Red")
-        .setTitle("🛑 Sayaç Kapatıldı")
-        .setDescription("Sayaç sistemi devre dışı bırakıldı.")
+        .setColor("Orange")
+        .setTitle("🛑 Sayaç Sistemi Kapatıldı")
+        .setDescription("Sayaç sistemi başarıyla devre dışı bırakıldı.")
         .setFooter({ text: `Sunucu: ${interaction.guild.name}` })
         .setTimestamp();
 
@@ -50,7 +57,14 @@ module.exports = {
 
     // Açma işlemi
     if (!hedef || !kanal) {
-      return interaction.reply({ content: "❌ Sayaç açmak için hedef ve kanal girmelisin.", ephemeral: true });
+      const embed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("⚠️ Eksik Bilgi")
+        .setDescription("Sayaç açmak için hem hedef hem kanal girmelisin.")
+        .setFooter({ text: `Sunucu: ${interaction.guild.name}` })
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     db.set(key, {
@@ -60,7 +74,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setColor("Green")
-      .setTitle("✅ Sayaç Aktif")
+      .setTitle("✅ Sayaç Sistemi Aktif")
       .addFields(
         { name: "Hedef Üye Sayısı", value: `${hedef}`, inline: true },
         { name: "Kanal", value: `<#${kanal.id}>`, inline: true }
