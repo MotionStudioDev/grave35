@@ -467,7 +467,6 @@ if (logID) {
     logChannel.send({ embeds: [logEmbed] });
   }
 }
-/// 2. 
 const logID = db.get(`ayrilmalog_${member.guild.id}`);
 if (logID) {
   const logChannel = member.guild.channels.cache.get(logID);
