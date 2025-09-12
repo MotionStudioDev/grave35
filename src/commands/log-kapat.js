@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const db = require("croxydb");
 
 module.exports = {
@@ -25,10 +25,25 @@ module.exports = {
     const key = `${tür}log_${interaction.guild.id}`;
 
     if (!db.has(key)) {
-      return interaction.reply({ content: `❌ ${tür}-log zaten aktif değil.`, ephemeral: true });
+      const embed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("❌ Log Zaten Aktif Değil")
+        .setDescription(`\`${tür}-log\` bu sunucuda aktif değil.`)
+        .setFooter({ text: `Sunucu: ${interaction.guild.name}` })
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     db.delete(key);
-    await interaction.reply({ content: `✅ ${tür}-log başarıyla devre dışı bırakıldı.`, ephemeral: true });
+
+    const embed = new EmbedBuilder()
+      .setColor("Orange")
+      .setTitle("🛑 Log Devre Dışı Bırakıldı")
+      .setDescription(`\`${tür}-log\` başarıyla kapatıldı.`)
+      .setFooter({ text: `Sunucu: ${interaction.guild.name}` })
+      .setTimestamp();
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   }
 };
