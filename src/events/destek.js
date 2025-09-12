@@ -1,61 +1,78 @@
-// src/events/destek.js
-const { Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const { Events, ChannelType, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require("discord.js");
 
 module.exports = {
   name: Events.InteractionCreate,
   async execute(interaction, client) {
     if (!interaction.isButton()) return;
 
-    // === DESTEK OLUŞTUR ===
-    if (interaction.customId === "destek_olustur") {
-      const existingChannel = interaction.guild.channels.cache.find(
-        ch => ch.name === `destek-${interaction.user.username.toLowerCase()}`
-      );
-      if (existingChannel) {
-        return interaction.reply({
-          content: "❌ Zaten açık bir destek talebin var!",
-          ephemeral: true,
-        });
-      }
+    // ✅ DESTEK AÇ
+    if (interaction.customId === "destek_ac") {
+      await interaction.deferReply({ ephemeral: true });
 
-      const channel = await interaction.guild.channels.create({
+      const kanal = await interaction.guild.channels.create({
         name: `destek-${interaction.user.username}`,
-        type: 0, // GUILD_TEXT
+        type: ChannelType.GuildText,
         permissionOverwrites: [
-          { id: interaction.guild.id, deny: ["ViewChannel"] },
-          { id: interaction.user.id, allow: ["ViewChannel", "SendMessages", "ReadMessageHistory"] },
+          {
+            id: interaction.guild.id,
+            deny: [PermissionFlagsBits.ViewChannel],
+          },
+          {
+            id: interaction.user.id,
+            allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages],
+          },
+          {
+            id: client.user.id,
+            allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages],
+          },
         ],
       });
 
-      const embed = new EmbedBuilder()
-        .setColor("Green")
-        .setTitle("📌 Destek Talebi Açıldı")
-        .setDescription(
-          `Merhaba <@${interaction.user.id}> 👋\n\n` +
-          `Buradan yetkililere şikayetini, isteğini veya önerini yazabilirsin.\n\n` +
-          `Talebi kapatmak için aşağıdaki butona bas.`
-        )
-        .setTimestamp();
-
-      const row = new ActionRowBuilder().addComponents(
+      const kapatButon = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId("destek_kapat")
           .setLabel("❌ Talebi Kapat")
           .setStyle(ButtonStyle.Danger)
       );
 
-      await channel.send({
-        content: `<@${interaction.user.id}> burası senin özel destek talebin.`,
-        embeds: [embed],
-        components: [row],
+      await kanal.send({
+        embeds: [
+          new EmbedBuilder()
+            .setColor("Blue")
+            .setTitle("🎫 Destek Talebi Açıldı")
+            .setDescription(`Merhaba <@${interaction.user.id}>, buradan yetkililere ulaşabilirsin.`)
+            .setTimestamp(),
+        ],
+        components: [kapatButon],
       });
 
-      await interaction.reply({ content: `✅ Talebin açıldı: ${channel}`, ephemeral: true });
+      await interaction.editReply({
+        content: `✅ Destek talebin açıldı: ${kanal}`,
+      });
     }
 
-    // === DESTEK KAPAT ===
+    // ✅ DESTEK KAPAT
     if (interaction.customId === "destek_kapat") {
-      await interaction.channel.delete().catch(() => null);
+      await interaction.deferReply({ ephemeral: true });
+
+      const user = interaction.channel.members.find(m => !m.user.bot); // Talebi açan kullanıcı
+      if (user) {
+        try {
+          await user.send({
+            embeds: [
+              new EmbedBuilder()
+                .setColor("Red")
+                .setTitle("📪 Destek Talebi Kapandı")
+                .setDescription(`Merhaba ${user}, açmış olduğun destek talebi **${interaction.guild.name}** sunucusunda kapatıldı.`)
+                .setTimestamp(),
+            ],
+          });
+        } catch (err) {
+          console.log(`[DM] ${user.user.tag} kullanıcısına mesaj gönderilemedi.`);
+        }
+      }
+
+      await interaction.channel.delete().catch(() => {});
     }
   },
 };
