@@ -4,31 +4,36 @@ const db = require("croxydb");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("tepkirol")
-    .setDescription("Birden fazla emojiyle rol alma mesajı oluşturur.")
+    .setDescription("Emojiye tepki vererek rol alma mesajı oluşturur.")
     .addStringOption(option =>
       option.setName("emoji1").setDescription("1. emoji").setRequired(true))
     .addRoleOption(option =>
       option.setName("rol1").setDescription("1. emojiye karşılık gelen rol").setRequired(true))
     .addStringOption(option =>
-      option.setName("emoji2").setDescription("2. emoji").setRequired(true))
+      option.setName("emoji2").setDescription("2. emoji").setRequired(false))
     .addRoleOption(option =>
-      option.setName("rol2").setDescription("2. emojiye karşılık gelen rol").setRequired(true))
+      option.setName("rol2").setDescription("2. emojiye karşılık gelen rol").setRequired(false))
     .addStringOption(option =>
-      option.setName("emoji3").setDescription("3. emoji").setRequired(true))
+      option.setName("emoji3").setDescription("3. emoji").setRequired(false))
     .addRoleOption(option =>
-      option.setName("rol3").setDescription("3. emojiye karşılık gelen rol").setRequired(true)),
+      option.setName("rol3").setDescription("3. emojiye karşılık gelen rol").setRequired(false)),
 
   async execute(interaction, client) {
-    const emojis = [
-      interaction.options.getString("emoji1"),
-      interaction.options.getString("emoji2"),
-      interaction.options.getString("emoji3")
-    ];
-    const roles = [
-      interaction.options.getRole("rol1"),
-      interaction.options.getRole("rol2"),
-      interaction.options.getRole("rol3")
-    ];
+    const emojis = [];
+    const roles = [];
+
+    for (let i = 1; i <= 3; i++) {
+      const emoji = interaction.options.getString(`emoji${i}`);
+      const rol = interaction.options.getRole(`rol${i}`);
+      if (emoji && rol) {
+        emojis.push(emoji);
+        roles.push(rol);
+      }
+    }
+
+    if (emojis.length === 0) {
+      return interaction.reply({ content: "❌ En az 1 emoji ve rol tanımlamalısın.", ephemeral: true });
+    }
 
     const embed = new EmbedBuilder()
       .setColor("Blurple")
