@@ -28,7 +28,7 @@ module.exports = {
         },
         {
           name: "📊 Genel",
-          value: "`/ping`, `/istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`",
+          value: "`/ping`, `/istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`",
         }
       )
       .setFooter({ 
