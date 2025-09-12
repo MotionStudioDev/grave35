@@ -98,7 +98,6 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 /////////////////////////
-require("./events/küfürEngel")(client);
 // ==== NODE.JS LISTENERS ====
 process.on("unhandledRejection", e => console.log(e));
 process.on("uncaughtException", e => console.log(e));
