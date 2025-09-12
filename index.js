@@ -485,3 +485,54 @@ client.on("guildMemberAdd", async member => {
     db.delete(`sayac_${member.guild.id}`); // Sayaç sıfırlanır
   }
 });
+//////////// DESTEK PANEL SİSTEMİ ///////
+client.on(Events.InteractionCreate, async interaction => {
+  if (interaction.isButton()) {
+    // === DESTEK OLUŞTUR ===
+    if (interaction.customId === "destek_olustur") {
+      const existingChannel = interaction.guild.channels.cache.find(
+        ch => ch.name === `destek-${interaction.user.username.toLowerCase()}`
+      );
+      if (existingChannel) {
+        return interaction.reply({ content: "❌ Zaten açık bir destek talebin var!", ephemeral: true });
+      }
+
+      const channel = await interaction.guild.channels.create({
+        name: `destek-${interaction.user.username}`,
+        type: 0, // text channel
+        permissionOverwrites: [
+          {
+            id: interaction.guild.id,
+            deny: ["ViewChannel"],
+          },
+          {
+            id: interaction.user.id,
+            allow: ["ViewChannel", "SendMessages", "ReadMessageHistory"],
+          }
+        ],
+      });
+
+      const embed = new EmbedBuilder()
+        .setColor("Green")
+        .setTitle("📌 Destek Talebi Açıldı")
+        .setDescription(`Merhaba <@${interaction.user.id}> 👋\n\nBuradan yetkililere şikayetini, isteğini veya önerini yazabilirsin.`)
+        .setFooter({ text: "Kapatmak için aşağıdaki butonu kullan." })
+        .setTimestamp();
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("destek_kapat")
+          .setLabel("❌ Talebi Kapat")
+          .setStyle(ButtonStyle.Danger)
+      );
+
+      await channel.send({ content: `<@${interaction.user.id}>`, embeds: [embed], components: [row] });
+      await interaction.reply({ content: `✅ Talebin açıldı: ${channel}`, ephemeral: true });
+    }
+
+    // === DESTEK KAPAT ===
+    if (interaction.customId === "destek_kapat") {
+      await interaction.channel.delete().catch(() => null);
+    }
+  }
+});
