@@ -453,3 +453,35 @@ client.on("guildMemberRemove", async member => {
     }
   }
 });
+////////////////// sayaç//////////////
+client.on("guildMemberAdd", async member => {
+  const veri = db.get(`sayac_${member.guild.id}`);
+  if (!veri) return;
+
+  const kanal = member.guild.channels.cache.get(veri.kanalID);
+  if (!kanal) return;
+
+  const toplam = member.guild.memberCount;
+  const kalan = veri.hedef - toplam;
+
+  const embed = new EmbedBuilder()
+    .setColor("Blurple")
+    .setTitle("📈 Yeni Üye Katıldı")
+    .setDescription(`Hoş geldin <@${member.id}>! 🎉\nSunucumuz şu anda **${toplam}** üyeye sahip.\nHedefe ulaşmak için **${kalan}** kişi kaldı.`)
+    .setThumbnail(member.user.displayAvatarURL())
+    .setFooter({ text: `Sayaç Hedefi: ${veri.hedef}` })
+    .setTimestamp();
+
+  kanal.send({ embeds: [embed] });
+
+  // 🎯 Hedefe ulaşıldıysa kutlama mesajı
+  if (toplam >= veri.hedef) {
+    const kutlama = new EmbedBuilder()
+      .setColor("Gold")
+      .setTitle("🎉 Hedefe Ulaşıldı!")
+      .setDescription(`Sunucumuz artık **${toplam}** üyeye sahip! Tebrikler!`)
+      .setTimestamp();
+    kanal.send({ embeds: [kutlama] });
+    db.delete(`sayac_${member.guild.id}`); // Sayaç sıfırlanır
+  }
+});
