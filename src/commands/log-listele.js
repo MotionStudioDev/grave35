@@ -7,7 +7,10 @@ module.exports = {
     .setDescription("Sunucuda aktif olan log türlerini listeler."),
 
   async execute(interaction) {
-    const logTürleri = ["tepki", "ban", "kick", "ses", "rol", "mod", "isim"];
+    const logTürleri = [
+      "tepki", "ban", "kick", "ses", "rol", "mod", "isim", "karsilama", "ayrilma"
+    ];
+
     const aktifLoglar = [];
 
     for (const tür of logTürleri) {
