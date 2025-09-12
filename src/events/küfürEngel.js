@@ -10,7 +10,7 @@ module.exports = client => {
     const içerik = message.content.toLowerCase();
 
     if (küfürler.some(k => içerik.includes(k))) {
-      await message.delete();
+      await message.delete(); // ✅ Küfürlü mesajı anında sil
 
       const uyarıKey = `uyarı_${message.author.id}_${message.guild.id}`;
       let uyarıSayısı = db.get(uyarıKey) || 0;
@@ -20,25 +20,25 @@ module.exports = client => {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("🚫 Küfür Tespit Edildi")
-        .setDescription(`<@${message.author.id}> küfürlü mesaj gönderdi ve silindi.`)
+        .setDescription(`<@${message.author.id}> küfürlü mesaj gönderdi.\n**Bu uyarı 7 saniye içinde silinecektir.**`)
         .addFields(
-          { name: "Mesaj", value: `\`${message.content}\``, inline: false },
-          { name: "Uyarı Sayısı", value: `${uyarıSayısı}`, inline: true }
+          { name: "Uyarı Sayısı", value: `${uyarıSayısı}` }
         )
         .setFooter({ text: `Kanal: #${message.channel.name}` })
         .setTimestamp();
 
-      try {
-        await message.channel.send({ embeds: [embed] });
-      } catch (err) {
-        console.log("Uyarı mesajı gönderilemedi:", err);
-      }
+      const uyarıMesajı = await message.channel.send({ embeds: [embed] }).catch(() => {});
+
+      // ⏱️ 7 saniye sonra uyarı embed’ini sil
+      setTimeout(() => {
+        if (uyarıMesajı) uyarıMesajı.delete().catch(() => {});
+      }, 7000);
 
       const logID = db.get(`kufurlog_${message.guild.id}`);
       if (logID) {
         const logChannel = message.guild.channels.cache.get(logID);
         if (logChannel) {
-          logChannel.send({ embeds: [embed] });
+          logChannel.send({ embeds: [embed] }).catch(() => {});
         }
       }
     }
