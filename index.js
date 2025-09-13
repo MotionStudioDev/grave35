@@ -419,31 +419,39 @@ client.on("guildMemberAdd", async member => {
 client.on("interactionCreate", async interaction => {
   if (!interaction.isButton()) return;
 
-  if (interaction.customId === "yardim_moderasyon") {
-    await interaction.reply({
-      content: "**🔨 Moderasyon Komutları**\n`ban`, `kick`, `unban`, `kilit kilitle`, `kilit kaldır`, `temizle`, `slowmode`",
-      ephemeral: true
-    });
+  const embed = new EmbedBuilder()
+    .setColor("Blurple")
+    .setFooter({ text: "Motion Studio - Grave", iconURL: interaction.client.user.displayAvatarURL() })
+    .setTimestamp();
+
+  switch (interaction.customId) {
+    case "yardim_moderasyon":
+      embed
+        .setTitle("🔨 Moderasyon Komutları")
+        .setDescription("`ban`, `kick`, `unban`, `kilit kilitle`, `kilit kaldır`, `temizle`, `slowmode`");
+      break;
+
+    case "yardim_sistem":
+      embed
+        .setTitle("⚙️ Sistem Komutları")
+        .setDescription("`oto-rol`, `reklam-engel`, `küfür-sistemi`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`, `karşılama-sistem`, `sayaç`, `sayaç-bilgi`, `talep-sistemi`");
+      break;
+
+    case "yardim_genel":
+      embed
+        .setTitle("📊 Genel Komutlar")
+        .setDescription("`ping`, `istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`");
+      break;
+
+    case "yardim_eglence":
+      embed
+        .setTitle("🎉 Eğlence Komutları")
+        .setDescription("`zar-at`, `yazı-tura`, `espiri`, `kaçcm`, `tokatla`, `sarıl`, `öp`, `aşk-ölçer`, `şanslı-üye`, `şifre-oluştur`");
+      break;
+
+    default:
+      return;
   }
 
-  if (interaction.customId === "yardim_sistem") {
-    await interaction.reply({
-      content: "**⚙️ Sistem Komutları**\n`oto-rol`, `reklam-engel`, `küfür-sistemi`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`, `karşılama-sistem`, `sayaç`, `sayaç-bilgi`, `talep-sistemi`",
-      ephemeral: true
-    });
-  }
-
-  if (interaction.customId === "yardim_genel") {
-    await interaction.reply({
-      content: "**📊 Genel Komutlar**\n`ping`, `istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`",
-      ephemeral: true
-    });
-  }
-
-  if (interaction.customId === "yardim_eglence") {
-    await interaction.reply({
-      content: "**🎉 Eğlence Komutları**\n`zar-at`, `yazı-tura`, `espiri`, `kaçcm`, `tokatla`, `sarıl`, `öp`, `aşk-ölçer`, `şanslı-üye`, `şifre-oluştur`",
-      ephemeral: true
-    });
-  }
+  await interaction.update({ embeds: [embed] });
 });
