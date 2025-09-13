@@ -415,4 +415,35 @@ client.on("guildMemberAdd", async member => {
     db.delete(`sayac_${member.guild.id}`); // Sayaç sıfırlanır
   }
 });
-//////////// 
+//////////// yardım menüsü
+client.on("interactionCreate", async interaction => {
+  if (!interaction.isButton()) return;
+
+  if (interaction.customId === "yardim_moderasyon") {
+    await interaction.reply({
+      content: "**🔨 Moderasyon Komutları**\n`ban`, `kick`, `unban`, `kilit kilitle`, `kilit kaldır`, `temizle`, `slowmode`",
+      ephemeral: true
+    });
+  }
+
+  if (interaction.customId === "yardim_sistem") {
+    await interaction.reply({
+      content: "**⚙️ Sistem Komutları**\n`oto-rol`, `reklam-engel`, `küfür-sistemi`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`, `karşılama-sistem`, `sayaç`, `sayaç-bilgi`, `talep-sistemi`",
+      ephemeral: true
+    });
+  }
+
+  if (interaction.customId === "yardim_genel") {
+    await interaction.reply({
+      content: "**📊 Genel Komutlar**\n`ping`, `istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`",
+      ephemeral: true
+    });
+  }
+
+  if (interaction.customId === "yardim_eglence") {
+    await interaction.reply({
+      content: "**🎉 Eğlence Komutları**\n`zar-at`, `yazı-tura`, `espiri`, `kaçcm`, `tokatla`, `sarıl`, `öp`, `aşk-ölçer`, `şanslı-üye`, `şifre-oluştur`",
+      ephemeral: true
+    });
+  }
+});
