@@ -56,18 +56,18 @@ module.exports = {
     // Bilgiler
     ctx.font = "22px Sans";
     ctx.fillStyle = "#00ffff";
-    ctx.fillText(`⏱️ Uptime: ${uptime}`, 50, 200);
-    ctx.fillText(`🔄 Başlama Zamanı: <t:${startTimestamp}:F>`, 50, 240);
-    ctx.fillText(`🏓 Ping: ${ping}`, 50, 280);
-    ctx.fillText(`🖥️ RAM Kullanımı: ${memory} MB`, 50, 320);
-    ctx.fillText(`💻 CPU: ${cpu}`, 50, 360);
-    ctx.fillText(`📦 Node.js Versiyonu: ${nodeVersion}`, 50, 400);
-    ctx.fillText(`⚙️ Discord.js Versiyonu: v${djsVersion}`, 50, 440);
-    ctx.fillText(`📁 Çalışma Dizini: ${cwd}`, 50, 480);
-    ctx.fillText(`📡 Sunucu Sayısı: ${guildCount}`, 50, 520);
-    ctx.fillText(`👥 Kullanıcı Sayısı: ${userCount}`, 50, 560);
-    ctx.fillText(`🔁 Komut Sayısı: ${commandCount}`, 50, 600);
-    ctx.fillText(`🆔 Bot ID: ${botID}`, 50, 640);
+    ctx.fillText(`Uptime: ${uptime}`, 50, 200);
+    ctx.fillText(`Başlama Zamanı: <t:${startTimestamp}:F>`, 50, 240);
+    ctx.fillText(`Ping: ${ping}`, 50, 280);
+    ctx.fillText(`RAM Kullanımı: ${memory} MB`, 50, 320);
+    ctx.fillText(`CPU: ${cpu}`, 50, 360);
+    ctx.fillText(`Node.js Versiyonu: ${nodeVersion}`, 50, 400);
+    ctx.fillText(`Discord.js Versiyonu: v${djsVersion}`, 50, 440);
+    ctx.fillText(`Çalışma Dizini: ${cwd}`, 50, 480);
+    ctx.fillText(`Sunucu Sayısı: ${guildCount}`, 50, 520);
+    ctx.fillText(`Kullanıcı Sayısı: ${userCount}`, 50, 560);
+    ctx.fillText(`Komut Sayısı: ${commandCount}`, 50, 600);
+    ctx.fillText(`Bot ID: ${botID}`, 50, 640);
 
     // Footer
     ctx.fillStyle = "#00ff88";
