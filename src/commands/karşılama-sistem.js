@@ -4,7 +4,7 @@ const db = require("croxydb");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("karşılama-sistem")
-    .setDescription("Karşılama ve ayrılma sistemini tek komutla ayarla.")
+    .setDescription("Karşılama ve ayrılma sistemini tek komutla ayarla veya kapat.")
     .addChannelOption(option =>
       option.setName("karşılama_kanalı")
         .setDescription("Karşılama mesajının gönderileceği kanal")
@@ -27,8 +27,26 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    if (!interaction.guild) return interaction.reply({ content: "❌ Bu komut sadece sunucularda kullanılabilir.", ephemeral: true });
-    if (!interaction.member.permissions.has("Administrator")) return interaction.reply({ content: "❌ Bu komutu sadece yöneticiler kullanabilir.", ephemeral: true });
+    if (!interaction.guild) {
+      const embed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("❌ Komut Hatası")
+        .setDescription("Bu komut sadece sunucularda kullanılabilir.")
+        .setTimestamp();
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+
+    if (!interaction.member.permissions.has("Administrator")) {
+      const embed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("⛔ Yetki Yetersiz")
+        .setDescription("Bu komutu sadece yöneticiler kullanabilir.")
+        .setTimestamp();
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+
+    const renkler = ["Blurple", "Green", "Red", "Gold", "#00ffff", "#ff00ff"];
+    const rastgeleRenk = renkler[Math.floor(Math.random() * renkler.length)];
 
     const karşılamaKanal = interaction.options.getChannel("karşılama_kanalı");
     const karşılamaMesaj = interaction.options.getString("karşılama_mesajı");
@@ -37,6 +55,22 @@ module.exports = {
 
     let bilgi = [];
 
+    // Sistem kapatma durumu
+    if (!karşılamaKanal && !ayrılmaKanal) {
+      db.delete(`karsilama_${interaction.guild.id}`);
+      db.delete(`ayrilma_${interaction.guild.id}`);
+
+      const embed = new EmbedBuilder()
+        .setColor(rastgeleRenk)
+        .setTitle("🛑 Sistem Kapatıldı")
+        .setDescription("Karşılama ve ayrılma mesajları devre dışı bırakıldı.")
+        .setFooter({ text: `Sunucu: ${interaction.guild.name}` })
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+
+    // Sistem güncelleme
     if (karşılamaKanal) {
       db.set(`karsilama_${interaction.guild.id}`, {
         kanalID: karşılamaKanal.id,
@@ -56,11 +90,16 @@ module.exports = {
     }
 
     if (bilgi.length === 0) {
-      return interaction.reply({ content: "⚠️ Ayarlanacak hiçbir veri girmedin. En az bir kanal seçmelisin.", ephemeral: true });
+      const embed = new EmbedBuilder()
+        .setColor(rastgeleRenk)
+        .setTitle("⚠️ Eksik Veri")
+        .setDescription("Ayarlanacak hiçbir veri girmedin. En az bir kanal seçmelisin.")
+        .setTimestamp();
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     const embed = new EmbedBuilder()
-      .setColor("Blue")
+      .setColor(rastgeleRenk)
       .setTitle("🔧 Karşılama Sistemi Güncellendi")
       .setDescription(bilgi.join("\n"))
       .setFooter({ text: `Sunucu: ${interaction.guild.name}` })
