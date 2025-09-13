@@ -452,7 +452,7 @@ client.on("interactionCreate", async interaction => {
         .setDescription("Kullanıcı ve sunucu bilgilerini görüntülemek için:")
         .addFields({
           name: "Komutlar",
-          value: "`ping`, `istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`"
+          value: "`ping`, `istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`, `website`"
         });
       break;
 
