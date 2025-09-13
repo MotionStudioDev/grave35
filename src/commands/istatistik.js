@@ -57,7 +57,7 @@ module.exports = {
     ctx.font = "22px Sans";
     ctx.fillStyle = "#00ffff";
     ctx.fillText(`Uptime: ${uptime}`, 50, 200);
-    ctx.fillText(`Başlama Zamanı: <t:${startTimestamp}:F>`, 50, 240);
+    ctx.fillText(`Kuruluş Zamanı: 20 Ocak 2023`, 50, 240);
     ctx.fillText(`Ping: ${ping}`, 50, 280);
     ctx.fillText(`RAM Kullanımı: ${memory} MB`, 50, 320);
     ctx.fillText(`CPU: ${cpu}`, 50, 360);
@@ -72,8 +72,8 @@ module.exports = {
     // Footer
     ctx.fillStyle = "#00ff88";
     ctx.font = "italic 20px Sans";
-    ctx.fillText(`<t:${startTimestamp}:d>`, 50, 700);
-    ctx.fillText("Motion Studio - Grave", 50, 730);
+    ctx.fillText(`Tüm hakları saklıdır.`, 50, 700);
+    ctx.fillText("GraveBOT - MotionStudioDev", 50, 730);
 
     const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: "gravebot-status.png" });
 
