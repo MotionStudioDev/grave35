@@ -421,6 +421,7 @@ client.on("interactionCreate", async interaction => {
 
   const embed = new EmbedBuilder()
     .setColor("Blurple")
+    .setThumbnail(interaction.client.user.displayAvatarURL())
     .setFooter({ text: "Motion Studio - Grave", iconURL: interaction.client.user.displayAvatarURL() })
     .setTimestamp();
 
@@ -428,25 +429,41 @@ client.on("interactionCreate", async interaction => {
     case "yardim_moderasyon":
       embed
         .setTitle("🔨 Moderasyon Komutları")
-        .setDescription("`ban`, `kick`, `unban`, `kilit kilitle`, `kilit kaldır`, `temizle`, `slowmode`");
+        .setDescription("Sunucuyu yönetmek için kullanabileceğin komutlar:")
+        .addFields({
+          name: "Komutlar",
+          value: "`ban`, `kick`, `unban`, `kilit kilitle`, `kilit kaldır`, `temizle`, `slowmode`"
+        });
       break;
 
     case "yardim_sistem":
       embed
         .setTitle("⚙️ Sistem Komutları")
-        .setDescription("`oto-rol`, `reklam-engel`, `küfür-sistemi`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`, `karşılama-sistem`, `sayaç`, `sayaç-bilgi`, `talep-sistemi`");
+        .setDescription("Otomasyon ve sunucu sistemlerini ayarlamak için:")
+        .addFields({
+          name: "Komutlar",
+          value: "`oto-rol`, `reklam-engel`, `küfür-sistemi`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`, `karşılama-sistem`, `sayaç`, `sayaç-bilgi`, `talep-sistemi`"
+        });
       break;
 
     case "yardim_genel":
       embed
         .setTitle("📊 Genel Komutlar")
-        .setDescription("`ping`, `istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`");
+        .setDescription("Kullanıcı ve sunucu bilgilerini görüntülemek için:")
+        .addFields({
+          name: "Komutlar",
+          value: "`ping`, `istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`"
+        });
       break;
 
     case "yardim_eglence":
       embed
         .setTitle("🎉 Eğlence Komutları")
-        .setDescription("`zar-at`, `yazı-tura`, `espiri`, `kaçcm`, `tokatla`, `sarıl`, `öp`, `aşk-ölçer`, `şanslı-üye`, `şifre-oluştur`");
+        .setDescription("Sunucuda eğlenmek ve etkileşim kurmak için:")
+        .addFields({
+          name: "Komutlar",
+          value: "`zar-at`, `yazı-tura`, `espiri`, `kaçcm`, `tokatla`, `sarıl`, `öp`, `aşk-ölçer`, `şanslı-üye`, `şifre-oluştur`"
+        });
       break;
 
     default:
