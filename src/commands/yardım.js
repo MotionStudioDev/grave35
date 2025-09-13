@@ -2,7 +2,8 @@ const {
   SlashCommandBuilder,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  EmbedBuilder
 } = require("discord.js");
 
 module.exports = {
@@ -10,7 +11,14 @@ module.exports = {
     .setName("yardım")
     .setDescription("Yardım menüsünü gösterir."),
 
-  async execute(interaction) {
+  async execute(interaction, client) {
+    const embed = new EmbedBuilder()
+      .setColor("Blurple")
+      .setTitle("📚 GraveBOT Yardım Menüsü")
+      .setDescription("Bir kategori seçerek komutları görüntüleyebilirsin.")
+      .setFooter({ text: "Motion Studio - Grave", iconURL: client.user.displayAvatarURL() })
+      .setTimestamp();
+
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId("yardim_moderasyon")
@@ -31,7 +39,7 @@ module.exports = {
     );
 
     await interaction.reply({
-      content: "📚 Yardım menüsünden bir kategori seçin:",
+      embeds: [embed],
       components: [row],
       ephemeral: true
     });
