@@ -8,17 +8,17 @@ module.exports = {
   async execute(interaction) {
     const zar = Math.floor(Math.random() * 6) + 1;
 
-    const emojiMap = {
-      1: "🎲 **1** – Tek geldi!",
-      2: "🎲 **2** – Çift ama düşük!",
-      3: "🎲 **3** – Orta karar!",
-      4: "🎲 **4** – Güzel sayı!",
-      5: "🎲 **5** – Şanslısın!",
-      6: "🎲 **6** – KRAL GELDİ 👑"
+    const yorumlar = {
+      1: "🎲 **1** – Tek geldi, şanssızsın 😅",
+      2: "🎲 **2** – Düşük ama çift 👀",
+      3: "🎲 **3** – Orta karar, ne iyi ne kötü 😐",
+      4: "🎲 **4** – Güzel sayı, devam! 🔥",
+      5: "🎲 **5** – Şanslısın, neredeyse kral! 👌",
+      6: "🎲 **6** – KRAL GELDİ 👑 Seninle zar atılmaz!"
     };
 
     await interaction.reply({
-      content: emojiMap[zar],
+      content: `${interaction.user} ${yorumlar[zar]}`,
       ephemeral: false
     });
   }
