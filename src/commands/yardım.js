@@ -1,42 +1,39 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
+} = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("yardım")
     .setDescription("Yardım menüsünü gösterir."),
 
-  async execute(interaction, client) {
-    const embed = new EmbedBuilder()
-      .setColor("Blurple")
-      .setAuthor({ 
-        name: `${client.user.username} Yardım Menüsü`, 
-        iconURL: client.user.displayAvatarURL() 
-      })
-      .setThumbnail(
-        interaction.guild?.iconURL({ extension: "png", size: 1024 }) 
-        || client.user.displayAvatarURL()
-      )
-      .setDescription("Grave - Tüm komutlar")
-      .addFields(
-        {
-          name: "🔨 Moderasyon",
-          value: "`ban`, `kick`, `unban`, `kilit kilitle`, `kilit kaldır`, `temizle`, `slowmode`",
-        },
-        {
-          name: "⚙️ Sistem",
-          value: "`oto-rol`, `reklam-engel`, `küfür-sistemi`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`, `karşılama-sistem`, `sayaç`, `sayaç-bilgi`, `talep-sistemi`",
-        },
-        {
-          name: "📊 Genel",
-          value: "`ping`, `istatistik`, `rol-bilgi`, `emojiler`, `emoji-bilgi`, `avatar`, `sunucu-bilgi`, `kullanıcı-bilgi`",
-        }
-      )
-      .setFooter({ 
-        text: "Grave Bot • Gelişmiş Discord Deneyimi", 
-        iconURL: client.user.displayAvatarURL() 
-      })
-      .setTimestamp();
+  async execute(interaction) {
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("yardim_moderasyon")
+        .setLabel("🔨 Moderasyon")
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId("yardim_sistem")
+        .setLabel("⚙️ Sistem")
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId("yardim_genel")
+        .setLabel("📊 Genel")
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId("yardim_eglence")
+        .setLabel("🎉 Eğlence")
+        .setStyle(ButtonStyle.Danger)
+    );
 
-    await interaction.reply({ embeds: [embed] });
-  },
+    await interaction.reply({
+      content: "📚 Yardım menüsünden bir kategori seçin:",
+      components: [row],
+      ephemeral: true
+    });
+  }
 };
