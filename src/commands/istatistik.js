@@ -46,12 +46,12 @@ module.exports = {
     // Başlık
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 42px Sans";
-    ctx.fillText("🤖 GraveBOT", 50, 70);
+    ctx.fillText("GraveBOT", 50, 70);
     ctx.font = "24px Sans";
     ctx.fillStyle = "#888";
-    ctx.fillText("Aktif", 50, 105);
+    ctx.fillText("Gelişmiş Discord Botu", 50, 105);
     ctx.fillStyle = "#ffffff";
-    ctx.fillText("Sistem Durumu", 50, 140);
+    ctx.fillText("Grave Güncel Sistem Durumu", 50, 140);
 
     // Bilgiler
     ctx.font = "22px Sans";
