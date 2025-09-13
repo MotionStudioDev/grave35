@@ -16,6 +16,7 @@ module.exports = {
       .setColor("Blurple")
       .setTitle("📚 GraveBOT Yardım Menüsü")
       .setDescription("Bir kategori seçerek komutları görüntüleyebilirsin.")
+      .setThumbnail(client.user.displayAvatarURL())
       .setFooter({ text: "Motion Studio - Grave", iconURL: client.user.displayAvatarURL() })
       .setTimestamp();
 
