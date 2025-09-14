@@ -103,14 +103,6 @@ process.on("unhandledRejection", e => console.log(e));
 process.on("uncaughtException", e => console.log(e));
 process.on("uncaughtExceptionMonitor", e => console.log(e));
 
-// ==== OTOROL ====
-client.on("guildMemberAdd", member => {
-  const rol = db.get(`otorol_${member.guild.id}`);
-  if (!rol) return;
-  member.roles.add(rol).catch(err => {
-    console.error(`[OTOROL] ${member.user.tag} için rol verilemedi:`, err);
-  });
-});
 
 // ==== REKLAM ENGEL ====
 client.on("messageCreate", async (message) => {
@@ -503,4 +495,6 @@ client.on("interactionCreate", interaction => talepHandler(client, interaction))
 ///// spam sistemi 
 const spamHandler = require("./src/events/spam.js");
 client.on("messageCreate", message => spamHandler(client, message));
-/////////
+/////////oto rol
+const otoRolHandler = require("./src/events/guildMemberAdd.js");
+client.on("guildMemberAdd", member => otoRolHandler(client, member));
