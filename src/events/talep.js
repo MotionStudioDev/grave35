@@ -18,29 +18,23 @@ module.exports = async (interaction) => {
   const isTalepSahibi = user.id === hedefId;
 
   if (!isKurucu && !isTalepSahibi) {
-    if (!interaction.replied) {
-      return interaction.reply({
-        content: "🚫 Bu butonu sadece talep sahibi veya kurucu kullanabilir.",
-        ephemeral: true
-      });
-    }
-    return;
+    return interaction.reply({
+      content: "🚫 Bu butonu sadece talep sahibi veya kurucu kullanabilir.",
+      ephemeral: true
+    });
   }
 
   // ❌ Hayır Açma
   if (id.startsWith("talep_red_")) {
-    if (!interaction.replied) {
-      return interaction.update({
-        embeds: [
-          new EmbedBuilder()
-            .setColor("Red")
-            .setTitle("❌ Talep İptal Edildi")
-            .setDescription("Onaylandı, talep açılmıyor.")
-        ],
-        components: []
-      });
-    }
-    return;
+    return interaction.update({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("Red")
+          .setTitle("❌ Talep İptal Edildi")
+          .setDescription("Onaylandı, talep açılmıyor.")
+      ],
+      components: []
+    });
   }
 
   // ✅ Evet Aç
@@ -101,7 +95,6 @@ module.exports = async (interaction) => {
       components: []
     });
 
-    // 15 dakika sonra otomatik kapatma
     setTimeout(async () => {
       const kanallar = guild.channels.cache.filter(c =>
         c.name.includes(user.username) &&
@@ -144,23 +137,25 @@ module.exports = async (interaction) => {
     });
   }
 
-  // ❌ Talebi Kapat
+  // ❌ Talebi Kapat — senin istediğin gibi: uyarı embed + 3 saniye sonra silme
   if (id.startsWith("talep_kapat_")) {
-    const kanallar = guild.channels.cache.filter(c =>
-      c.name.includes(user.username) &&
-      ["talep-", "destek-"].some(prefix => c.name.startsWith(prefix))
-    );
-    for (const kanal of kanallar.values()) {
+    const kanal = interaction.channel;
+
+    const embed = new EmbedBuilder()
+      .setColor("Red")
+      .setTitle("📪 Talep Kapatılıyor")
+      .setDescription("Talep başarıyla kapatıldı. Bu kanal 3 saniye içinde otomatik olarak silinecek.")
+      .setFooter({ text: "GraveBOT Talep Sistemi" })
+      .setTimestamp();
+
+    await interaction.reply({ embeds: [embed] });
+
+    setTimeout(async () => {
       try {
         await kanal.delete();
       } catch (err) {
         console.log(`[Talep Kapat] Kanal silinemedi: ${err.message}`);
       }
-    }
-
-    return interaction.reply({
-      content: "📪 Talebin kapatıldı. Kanallar silindi.",
-      ephemeral: true
-    });
+    }, 3000);
   }
 };
