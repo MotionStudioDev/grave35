@@ -43,9 +43,9 @@ module.exports = {
       .setTitle("🔍 Emoji Bilgisi")
       .setThumbnail(emojiURL)
       .addFields(
-        { name: "Emoji Adı", value: emojiAdı, inline: true },
-        { name: "Emoji ID", value: emojiID, inline: true },
-        { name: "Animasyonlu mu?", value: animasyonluMu ? "✅ Evet" : "❌ Hayır", inline: true },
+        { name: "Ad", value: emojiAdı, inline: true },
+        { name: "ID", value: emojiID, inline: true },
+        { name: "Animasyonlu", value: animasyonluMu ? "✅ Evet" : "❌ Hayır", inline: true },
         { name: "Görsel Linki", value: `[Tıkla](${emojiURL})`, inline: false }
       )
       .setFooter({ text: "Motion Studio - GraveBOT" })
@@ -53,11 +53,11 @@ module.exports = {
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId("copy_id")
+        .setCustomId(`copy_${emojiID}`)
         .setLabel("ID’yi Kopyala")
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
-        .setLabel("İndir")
+        .setLabel("📥 İndir")
         .setStyle(ButtonStyle.Link)
         .setURL(emojiURL)
     );
@@ -66,26 +66,17 @@ module.exports = {
   },
 
   async handleButton(interaction) {
-    if (interaction.customId === "copy_id") {
-      const embed = interaction.message.embeds[0];
-      const emojiID = embed.fields.find(f => f.name === "Emoji ID")?.value;
+    const customId = interaction.customId;
+    if (customId.startsWith("copy_")) {
+      const emojiID = customId.split("_")[1];
 
-      if (!emojiID) {
-        const hataEmbed = new EmbedBuilder()
-          .setColor("Red")
-          .setTitle("❌ ID Bulunamadı")
-          .setDescription("Emoji ID’si embed içinde bulunamadı.")
-          .setTimestamp();
-        return interaction.reply({ embeds: [hataEmbed], ephemeral: true });
-      }
-
-      const kopyaEmbed = new EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor("Green")
         .setTitle("📋 Emoji ID")
         .setDescription(`\`${emojiID}\` → kopyalamak için üzerine tıkla`)
         .setTimestamp();
 
-      await interaction.reply({ embeds: [kopyaEmbed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
     }
   }
 };
