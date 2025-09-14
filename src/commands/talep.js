@@ -32,6 +32,6 @@ module.exports = {
         .setStyle(ButtonStyle.Danger)
     );
 
-    await interaction.reply({ embeds: [embed], components: [row] }); // herkes görebilir
+    await interaction.reply({ embeds: [embed], components: [row] });
   }
 };
