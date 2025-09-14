@@ -143,6 +143,4 @@ module.exports = {
       }
     });
   },
-
-  sunucuAyarları
 };
