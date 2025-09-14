@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, ChannelType } = require("discord.js");
 
 module.exports = async (interaction) => {
   if (!interaction.isButton()) return;
@@ -8,7 +8,15 @@ module.exports = async (interaction) => {
   const guild = interaction.guild;
 
   const hedefId = id.split("_")[2];
-  if (user.id !== hedefId) return;
+  const isKurucu = user.id === guild.ownerId;
+  const isTalepSahibi = user.id === hedefId;
+
+  if (!isKurucu && !isTalepSahibi) {
+    return interaction.reply({
+      content: "🚫 Bu butonu sadece talep sahibi veya kurucu kullanabilir.",
+      ephemeral: true
+    });
+  }
 
   // ❌ Hayır Açma
   if (id.startsWith("talep_red_")) {
@@ -41,7 +49,7 @@ module.exports = async (interaction) => {
 
     const textChannel = await guild.channels.create({
       name: kanalAdı,
-      type: 0,
+      type: ChannelType.GuildText,
       permissionOverwrites: [
         { id: guild.roles.everyone, deny: ["ViewChannel"] },
         { id: user.id, allow: ["ViewChannel", "SendMessages"] },
@@ -52,7 +60,7 @@ module.exports = async (interaction) => {
     const embed = new EmbedBuilder()
       .setColor("Green")
       .setTitle("📨 Talep Açıldı")
-      .setDescription(`**Talep Sahibi:** <@${user.id}>\n**Talep Süresi:** 15 dakika\n\n15 Dakikanız başlamıştır. Aşağıdaki butonları kullanabilirsiniz.`)
+      .setDescription(`**Talep Sahibi:** <@${user.id}>\n**Talep Süresi:** 15 dakika\n\n⏱️ 15 Dakikanız başlamıştır. Aşağıdaki butonları kullanabilirsiniz.`)
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
@@ -108,7 +116,7 @@ module.exports = async (interaction) => {
 
     const voiceChannel = await guild.channels.create({
       name: kanalAdı,
-      type: 2,
+      type: ChannelType.GuildVoice,
       permissionOverwrites: [
         { id: guild.roles.everyone, deny: ["ViewChannel"] },
         { id: user.id, allow: ["ViewChannel", "Connect", "Speak"] },
