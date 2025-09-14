@@ -1,4 +1,4 @@
-const { EmbedBuilder, PermissionsBitField } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 
 module.exports = async (interaction) => {
   if (!interaction.isButton()) return;
@@ -7,7 +7,6 @@ module.exports = async (interaction) => {
   const guild = interaction.guild;
   const user = interaction.user;
 
-  // Talep sahibinin ID'sini ayıkla
   const hedefId = id.split("_")[2];
   const isKurucu = user.id === guild.ownerId;
   const isTalepSahibi = user.id === hedefId;
@@ -26,7 +25,7 @@ module.exports = async (interaction) => {
 
   // Sesli Destek Butonu
   if (id.startsWith("talep_sesli_")) {
-    const kanal = await guild.channels.create({
+    const voiceChannel = await guild.channels.create({
       name: `destek-${user.username}`,
       type: 2, // GUILD_VOICE
       permissionOverwrites: [
@@ -50,7 +49,7 @@ module.exports = async (interaction) => {
         new EmbedBuilder()
           .setColor("Green")
           .setTitle("🎙️ Sesli Destek Açıldı")
-          .setDescription(`Sesli kanal oluşturuldu: <#${kanal.id}>`)
+          .setDescription(`Sesli kanal oluşturuldu: <#${voiceChannel.id}>`)
       ],
       ephemeral: true
     });
@@ -59,7 +58,8 @@ module.exports = async (interaction) => {
   // Talebi Kapat Butonu
   if (id.startsWith("talep_kapat_")) {
     const kanallar = guild.channels.cache.filter(c =>
-      c.name.includes(user.username) && ["talep-", "destek-"].some(prefix => c.name.startsWith(prefix))
+      c.name.includes(user.username) &&
+      ["talep-", "destek-"].some(prefix => c.name.startsWith(prefix))
     );
 
     for (const kanal of kanallar.values()) {
