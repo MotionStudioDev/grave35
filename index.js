@@ -498,3 +498,5 @@ client.on("interactionCreate", async interaction => {
   }
 });
 /////////////////////// talep sistemi
+const talepHandler = require("./src/events/talep.js");
+client.on("interactionCreate", interaction => talepHandler(client, interaction));
