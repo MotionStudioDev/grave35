@@ -9,13 +9,25 @@ const {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("talep")
-    .setDescription("Destek talebi başlatmak için buton gönderir."),
+    .setDescription("Destek talebi başlatmak için buton gönderir.")
+    .addStringOption(option =>
+      option
+        .setName("mesaj")
+        .setDescription("İsteğe bağlı özel talep mesajı")
+        .setRequired(false)
+    ),
 
   async execute(interaction) {
+    const özelMesaj = interaction.options.getString("mesaj");
+
     const embed = new EmbedBuilder()
       .setColor("Blurple")
       .setTitle("🎫 Destek Talebi")
-      .setDescription("Destek ekibiyle iletişime geçmek istiyorsan aşağıdaki butona tıklayarak talep oluşturabilirsin.")
+      .setDescription(
+        özelMesaj
+          ? `📨 Talep mesajı:\n> ${özelMesaj}\n\nDestek ekibiyle iletişime geçmek için aşağıdaki butona tıklayabilirsin.`
+          : "Destek ekibiyle iletişime geçmek istiyorsan aşağıdaki butona tıklayarak talep oluşturabilirsin."
+      )
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
