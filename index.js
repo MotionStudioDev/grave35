@@ -497,4 +497,93 @@ client.on("interactionCreate", async interaction => {
     }
   }
 });
-///////////////////////
+/////////////////////// talep sistemi
+client.on("interactionCreate", async interaction => {
+  if (!interaction.isButton()) return;
+
+  const { guild, user } = interaction;
+
+  if (interaction.customId === "talep_ac") {
+    const kanal = await guild.channels.create({
+      name: `talep-${user.username}`,
+      type: 0,
+      permissionOverwrites: [
+        { id: guild.id, deny: ["ViewChannel"] },
+        { id: user.id, allow: ["ViewChannel", "SendMessages"] }
+      ]
+    });
+
+    const embed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle("📋 Talep Bilgisi")
+      .setDescription(`Talep sahibi: <@${user.id}>\nTalep oluşturulma: <t:${Math.floor(Date.now() / 1000)}:F>\n\n> Sesli destek istersen aşağıdaki butona tıklayabilirsin.`)
+      .setFooter({ text: "Destek Ekibi Talebi Yönetebilir" })
+      .setTimestamp();
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("talep_kapat")
+        .setLabel("❌ Talebi Kapat")
+        .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder()
+        .setCustomId("talep_ses")
+        .setLabel("🔊 Sesli Destek")
+        .setStyle(ButtonStyle.Secondary)
+    );
+
+    await kanal.send({ content: `<@${user.id}>`, embeds: [embed], components: [row] });
+    await interaction.reply({ content: `✅ Talep kanalı oluşturuldu: ${kanal}`, ephemeral: true });
+
+    // ⏱️ Otomatik kapanma: 15 dakika sonra
+    setTimeout(() => {
+      if (kanal && kanal.deletable) {
+        kanal.send({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("Red")
+              .setTitle("⏳ Talep Süresi Doldu")
+              .setDescription("Bu talep kanalı otomatik olarak kapatılıyor.")
+              .setTimestamp()
+          ]
+        }).then(() => kanal.delete().catch(() => {}));
+      }
+    }, 15 * 60 * 1000);
+  }
+
+  if (interaction.customId === "talep_kapat") {
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("Red")
+          .setTitle("❌ Talep Kapatıldı")
+          .setDescription("Bu talep kanalı birazdan silinecek.")
+          .setTimestamp()
+      ],
+      ephemeral: true
+    });
+    setTimeout(() => interaction.channel.delete().catch(() => {}), 3000);
+  }
+
+  if (interaction.customId === "talep_ses") {
+    const sesKanal = await interaction.guild.channels.create({
+      name: `🎧 ${interaction.user.username}-destek`,
+      type: 2,
+      permissionOverwrites: [
+        { id: interaction.guild.id, deny: ["ViewChannel"] },
+        { id: interaction.user.id, allow: ["ViewChannel", "Connect", "Speak"] }
+      ]
+    });
+
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("Blurple")
+          .setTitle("🔊 Sesli Destek Açıldı")
+          .setDescription(`Sesli destek kanalı oluşturuldu: <#${sesKanal.id}>`)
+          .setTimestamp()
+      ],
+      ephemeral: true
+    });
+  }
+});
+//////// talep sistemi son
