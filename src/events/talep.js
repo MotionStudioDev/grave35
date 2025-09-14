@@ -1,14 +1,16 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, PermissionsBitField } = require("discord.js");
 
 module.exports = async (interaction) => {
   if (!interaction.isButton()) return;
 
-  const customId = interaction.customId;
-  if (!customId.startsWith("talep_kapat_")) return;
+  const id = interaction.customId;
+  const guild = interaction.guild;
+  const user = interaction.user;
 
-  const talepSahibiId = customId.split("_")[2];
-  const isKurucu = interaction.user.id === interaction.guild.ownerId;
-  const isTalepSahibi = interaction.user.id === talepSahibiId;
+  // Talep sahibinin ID'sini ayıkla
+  const hedefId = id.split("_")[2];
+  const isKurucu = user.id === guild.ownerId;
+  const isTalepSahibi = user.id === hedefId;
 
   if (!isKurucu && !isTalepSahibi) {
     return interaction.reply({
@@ -16,17 +18,66 @@ module.exports = async (interaction) => {
         new EmbedBuilder()
           .setColor("Red")
           .setTitle("🚫 Yetki Yetersiz")
-          .setDescription("Bu talebi sadece sahibi veya sunucu kurucusu kapatabilir.")
+          .setDescription("Bu butonu sadece talep sahibi veya sunucu kurucusu kullanabilir.")
       ],
       ephemeral: true
     });
   }
 
-  const embed = EmbedBuilder.from(interaction.message.embeds[0])
-    .setColor("Red")
-    .setTitle("📪 Talep Kapatıldı")
-    .setFooter({ text: `Kapatan: ${interaction.user.tag}` })
-    .setTimestamp();
+  // Sesli Destek Butonu
+  if (id.startsWith("talep_sesli_")) {
+    const kanal = await guild.channels.create({
+      name: `destek-${user.username}`,
+      type: 2, // GUILD_VOICE
+      permissionOverwrites: [
+        {
+          id: guild.roles.everyone,
+          deny: ["ViewChannel"]
+        },
+        {
+          id: hedefId,
+          allow: ["ViewChannel", "Connect", "Speak"]
+        },
+        {
+          id: guild.ownerId,
+          allow: ["ViewChannel", "Connect", "Speak"]
+        }
+      ]
+    });
 
-  await interaction.update({ embeds: [embed], components: [] });
+    return interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("Green")
+          .setTitle("🎙️ Sesli Destek Açıldı")
+          .setDescription(`Sesli kanal oluşturuldu: <#${kanal.id}>`)
+      ],
+      ephemeral: true
+    });
+  }
+
+  // Talebi Kapat Butonu
+  if (id.startsWith("talep_kapat_")) {
+    const kanallar = guild.channels.cache.filter(c =>
+      c.name.includes(user.username) && ["talep-", "destek-"].some(prefix => c.name.startsWith(prefix))
+    );
+
+    for (const kanal of kanallar.values()) {
+      try {
+        await kanal.delete();
+      } catch (err) {
+        console.log(`[Talep] Kanal silinemedi: ${err.message}`);
+      }
+    }
+
+    return interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("Red")
+          .setTitle("📪 Talep Kapatıldı")
+          .setDescription("Tüm talep kanalların kapatıldı.")
+      ],
+      ephemeral: true
+    });
+  }
 };
