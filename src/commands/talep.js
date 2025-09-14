@@ -9,11 +9,17 @@ const {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("talep")
-    .setDescription("Talep başlatmak için kurucu yetkisi gereklidir."),
+    .setDescription("Talep sistemi başlatılır (sadece kurucu)")
+    .addRoleOption(option =>
+      option.setName("destekrol")
+        .setDescription("Talebe bakacak destek rolü (isteğe bağlı)")
+        .setRequired(false)
+    ),
 
   async execute(interaction) {
     const user = interaction.user;
     const guild = interaction.guild;
+    const destekRol = interaction.options.getRole("destekrol");
 
     if (user.id !== guild.ownerId) {
       return interaction.reply({
@@ -26,12 +32,12 @@ module.exports = {
       .setColor("Blurple")
       .setTitle("📩 Talep Sistemi Başlatıldı")
       .setDescription(`Talep açmak isteyenler aşağıdaki butonları kullanabilir.\n\n✅ Evet Aç → Talep kanalı oluşturur\n❌ Hayır Açma → Talep iptal edilir`)
-      .setFooter({ text: "Kurucu tarafından başlatıldı" })
+      .setFooter({ text: destekRol ? `Destek Rolü: ${destekRol.name}` : "Destek rolü belirtilmedi" })
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`talep_onay`)
+        .setCustomId(`talep_onay_${destekRol?.id || "none"}`)
         .setLabel("✅ Evet Aç")
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
