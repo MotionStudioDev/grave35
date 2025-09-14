@@ -22,12 +22,12 @@ module.exports = {
     const match = emojiInput.match(emojiRegex);
 
     if (!match) {
-      const hataEmbed = new EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("❌ Geçersiz Emoji")
         .setDescription("Lütfen özel bir sunucu emojisi gir (örnek: `<:grave:123456789012345678>`).")
         .setTimestamp();
-      return interaction.reply({ embeds: [hataEmbed], ephemeral: true });
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     const animasyonluMu = match[1] === "a";
@@ -54,7 +54,7 @@ module.exports = {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`copy_${emojiID}`)
-        .setLabel("ID’yi Kopyala")
+        .setLabel("ID’yi Göster")
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setLabel("📥 İndir")
@@ -63,20 +63,5 @@ module.exports = {
     );
 
     await interaction.reply({ embeds: [embed], components: [row], ephemeral: false });
-  },
-
-  async handleButton(interaction) {
-    const customId = interaction.customId;
-    if (customId.startsWith("copy_")) {
-      const emojiID = customId.split("_")[1];
-
-      const embed = new EmbedBuilder()
-        .setColor("Green")
-        .setTitle("📋 Emoji ID")
-        .setDescription(`\`${emojiID}\` → kopyalamak için üzerine tıkla`)
-        .setTimestamp();
-
-      await interaction.reply({ embeds: [embed], ephemeral: true });
-    }
   }
 };
