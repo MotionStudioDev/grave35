@@ -442,7 +442,7 @@ client.on("interactionCreate", async interaction => {
         .setDescription("Otomasyon ve sunucu sistemlerini ayarlamak için:")
         .addFields({
           name: "Komutlar",
-          value: "`oto-rol`, `reklam-engel`, `küfür-sistemi`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`, `karşılama-sistem`, `sayaç`, `sayaç-bilgi`, `talep`"
+          value: "`oto-rol`, `reklam-engel`, `küfür-sistemi`, `tepkirol`, `log-ayarla`, `log-listele`, `log-kapat`, `karşılama-sistem`, `sayaç`, `sayaç-bilgi`, `talep`, `spam-sistemi`"
         });
       break;
 
