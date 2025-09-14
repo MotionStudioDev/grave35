@@ -472,3 +472,20 @@ client.on("interactionCreate", async interaction => {
 
   await interaction.update({ embeds: [embed] });
 });
+/////////////////// EMOJİ-BİLGİ
+client.on("interactionCreate", async interaction => {
+  if (interaction.isButton()) {
+    const command = client.commands.get("emoji-bilgi");
+    if (command && typeof command.handleButton === "function") {
+      await command.handleButton(interaction);
+    }
+  }
+
+  if (interaction.isChatInputCommand()) {
+    const command = client.commands.get(interaction.commandName);
+    if (command) {
+      await command.execute(interaction, client);
+    }
+  }
+});
+///////////////////////
