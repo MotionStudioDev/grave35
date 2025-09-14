@@ -7,19 +7,19 @@ module.exports = async (client, message) => {
   if (message.author.bot || !message.guild) return;
 
   const guildId = message.guild.id;
-  if (!spamDurumu.get(guildId)) return; // Sistem kapalıysa çık
+  if (!spamDurumu.get(guildId)) return;
 
   const userId = message.author.id;
   const now = Date.now();
   const geçmiş = userMessages.get(userId) || [];
 
-  geçmiş.push({ content: message.content, timestamp: now });
+  geçmiş.push({ content: message.content, timestamp: now, id: message.id });
   userMessages.set(userId, geçmiş.filter(m => now - m.timestamp < 7000));
 
-  const tekrarSayısı = geçmiş.filter(m => m.content === message.content).length;
+  const tekrarlar = geçmiş.filter(m => m.content === message.content);
 
-  if (tekrarSayısı >= 3) {
-    await message.channel.send({
+  if (tekrarlar.length >= 3) {
+    const uyarı = await message.channel.send({
       content: `<@${userId}>`,
       embeds: [
         new EmbedBuilder()
@@ -30,6 +30,19 @@ module.exports = async (client, message) => {
           .setTimestamp()
       ]
     });
+
+    // Uyarıyı 5 saniye sonra sil
+    setTimeout(() => {
+      if (uyarı.deletable) uyarı.delete().catch(() => {});
+    }, 5000);
+
+    // Spam mesajlarını sil
+    for (const m of tekrarlar) {
+      try {
+        const msg = await message.channel.messages.fetch(m.id);
+        if (msg.deletable) await msg.delete();
+      } catch (err) {}
+    }
 
     userMessages.set(userId, []);
   }
