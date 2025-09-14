@@ -67,14 +67,16 @@ module.exports = async (interaction) => {
     }
   } catch (err) {
     console.log(`[ButonRol] Rol işlem hatası: ${err.message}`);
-    await interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Red")
-          .setTitle("⚠️ Hata Oluştu")
-          .setDescription("Rol verilirken bir hata oluştu. Yetkileri ve rol pozisyonunu kontrol et.")
-      ],
-      ephemeral: true
-    });
+    if (!interaction.replied) {
+      await interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor("Red")
+            .setTitle("⚠️ Hata Oluştu")
+            .setDescription("Rol verilirken bir hata oluştu. Yetkileri ve rol pozisyonunu kontrol et.")
+        ],
+        ephemeral: true
+      });
+    }
   }
 };
