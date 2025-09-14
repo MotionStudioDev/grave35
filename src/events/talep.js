@@ -26,7 +26,8 @@ module.exports = async (interaction) => {
   }
 
   // ✅ Evet Aç
-  if (id === "talep_onay") {
+  if (id.startsWith("talep_onay_")) {
+    const destekRolId = id.split("_")[2] !== "none" ? id.split("_")[2] : null;
     const kanalAdı = `talep-${user.username}`;
     const varMi = guild.channels.cache.find(c => c.name === kanalAdı);
     if (varMi) {
@@ -40,13 +41,20 @@ module.exports = async (interaction) => {
       return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
+    const permissionOverwrites = [
+      { id: guild.roles.everyone, deny: ["ViewChannel"] },
+      { id: user.id, allow: ["ViewChannel", "SendMessages"] },
+      { id: guild.ownerId, allow: ["ViewChannel", "SendMessages"] }
+    ];
+
+    if (destekRolId) {
+      permissionOverwrites.push({ id: destekRolId, allow: ["ViewChannel", "SendMessages"] });
+    }
+
     const textChannel = await guild.channels.create({
       name: kanalAdı,
       type: ChannelType.GuildText,
-      permissionOverwrites: [
-        { id: guild.roles.everyone, allow: ["ViewChannel"] },
-        { id: user.id, allow: ["SendMessages"] }
-      ]
+      permissionOverwrites
     });
 
     const talepID = Math.floor(100000 + Math.random() * 900000);
@@ -66,7 +74,11 @@ module.exports = async (interaction) => {
       new ButtonBuilder()
         .setCustomId(`talep_sesli_${user.id}`)
         .setLabel("🎙️ Sesli Destek Al")
-        .setStyle(ButtonStyle.Primary)
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId(`talep_destek_${user.id}_${destekRolId || "none"}`)
+        .setLabel("📢 Destek Ekibini Çağır")
+        .setStyle(ButtonStyle.Secondary)
     );
 
     await textChannel.send({ embeds: [embed], components: [row] });
@@ -114,8 +126,9 @@ module.exports = async (interaction) => {
       name: kanalAdı,
       type: ChannelType.GuildVoice,
       permissionOverwrites: [
-        { id: guild.roles.everyone, allow: ["ViewChannel"] },
-        { id: user.id, allow: ["Connect", "Speak"] }
+        { id: guild.roles.everyone, deny: ["ViewChannel"] },
+        { id: user.id, allow: ["ViewChannel", "Connect", "Speak"] },
+        { id: guild.ownerId, allow: ["ViewChannel", "Connect", "Speak"] }
       ]
     });
 
@@ -129,7 +142,27 @@ module.exports = async (interaction) => {
     return interaction.reply({ embeds: [embed], ephemeral: true });
   }
 
-  // ❌ Talebi Kapat — %100 tüm kanalları embedli uyarıyla siler
+    // 📢 Destek Ekibini Çağır
+  if (id.startsWith("talep_destek_")) {
+    const destekRolId = id.split("_")[3];
+
+    const embed = new EmbedBuilder()
+      .setColor("Yellow")
+      .setTitle("📢 Destek Ekibi Çağrıldı")
+      .setDescription("Değerli Destek Ekibi, lütfen açılan kanaldaki destek talebine **15 dakika içinde** yanıt verin. Aksi takdirde talep süresi dolduğunda otomatik olarak kapanacaktır.")
+      .setFooter({ text: "GraveBOT Talep Sistemi" })
+      .setTimestamp();
+
+    if (destekRolId !== "none") {
+      return interaction.reply({
+        content: `<@&${destekRolId}>`,
+        embeds: [embed]
+      });
+    } else {
+      return interaction.reply({ embeds: [embed] });
+    }
+  }
+    // ❌ Talebi Kapat
   if (id.startsWith("talep_kapat_")) {
     const embed = new EmbedBuilder()
       .setColor("Red")
@@ -142,8 +175,8 @@ module.exports = async (interaction) => {
 
     setTimeout(async () => {
       const kanallar = guild.channels.cache.filter(c =>
-        ["talep-", "destek-"].some(prefix => c.name.startsWith(prefix)) &&
-        c.name.includes(user.username)
+        c.name.includes(user.username) &&
+        ["talep-", "destek-"].some(prefix => c.name.startsWith(prefix))
       );
 
       for (const kanal of kanallar.values()) {
