@@ -10,46 +10,31 @@ const {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("talep")
-    .setDescription("Destek talebi başlatmak için buton gönderir.")
+    .setDescription("Yeni bir talep oluşturur.")
     .addStringOption(option =>
-      option
-        .setName("mesaj")
-        .setDescription("İsteğe bağlı özel talep mesajı")
-        .setRequired(false)
+      option.setName("konu").setDescription("Talep konusu").setRequired(true)
     ),
 
   async execute(interaction) {
-    if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-      const yetkiEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setTitle("🚫 Yetki Yetersiz")
-        .setDescription("Bu komutu sadece yöneticiler kullanabilir.")
-        .setFooter({ text: "GraveBOT Talep Sistemi" })
-        .setTimestamp();
-
-      return interaction.reply({ embeds: [yetkiEmbed], ephemeral: true });
-    }
-
-    const özelMesaj = interaction.options.getString("mesaj");
+    const konu = interaction.options.getString("konu");
+    const talepSahibi = interaction.user;
+    const kanal = interaction.channel;
 
     const embed = new EmbedBuilder()
       .setColor("Blurple")
-      .setTitle("🎫 Destek Talebi")
-      .setDescription(
-        özelMesaj
-          ? `📨 Talep mesajı:\n> ${özelMesaj}\n\nDestek ekibiyle iletişime geçmek için aşağıdaki butona tıklayabilirsin.`
-          : "Destek ekibiyle iletişime geçmek istiyorsan aşağıdaki butona tıklayarak talep oluşturabilirsin."
-      )
+      .setTitle("📩 Yeni Talep")
+      .setDescription(`**Talep Sahibi:** <@${talepSahibi.id}>\n**Konu:** ${konu}`)
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId("talep_ac")
-        .setLabel("📩 Talep Oluştur")
-        .setStyle(ButtonStyle.Primary)
+        .setCustomId(`talep_kapat_${talepSahibi.id}`)
+        .setLabel("❌ Talebi Kapat")
+        .setStyle(ButtonStyle.Danger)
     );
 
-    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+    await kanal.send({ embeds: [embed], components: [row] });
+    await interaction.reply({ content: "✅ Talebin oluşturuldu.", ephemeral: true });
   }
 };
