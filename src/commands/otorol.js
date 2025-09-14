@@ -41,7 +41,7 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setColor("Green")
         .setTitle("🛠️ Oto-Rol Sistemi Aktif")
-        .setDescription(`Sistem aktif.\nÜye rolü: <@&${ayar.uyeRolId}>\nBot rolü: <@&${ayar.botRolId}>\n${ayar.logKanalId ? `Log kanalı: <#${ayar.logKanalId}>` : "Log kanalı ayarlanmamış."}`)
+        .setDescription(`Üye rolü: <@&${ayar.uyeRolId}>\nBot rolü: <@&${ayar.botRolId}>\n${ayar.logKanalId ? `Log kanalı: <#${ayar.logKanalId}>` : "Log kanalı ayarlanmadı."}`)
         .setFooter({ text: "GraveBOT Oto-Rol Sistemi" })
         .setTimestamp();
 
@@ -113,19 +113,50 @@ module.exports = {
 
         const embed = new EmbedBuilder()
           .setColor("Green")
-          .setTitle("✅ Oto-Rol Sistemi Aktif Edildi")
-          .setDescription(`Üye rolü: <@&${roller[0]}>\nBot rolü: <@&${roller[1]}>\n\nİsteğe bağlı olarak log kanalını ayarlamak ister misin?`)
+          .setTitle("✅ Roller Ayarlandı")
+          .setDescription(`Üye rolü: <@&${roller[0]}>\nBot rolü: <@&${roller[1]}>\n\nLog kanalını ayarlamak ister misin?`)
           .setFooter({ text: "GraveBOT Oto-Rol Sistemi" })
+          .setTimestamp();
+
+        const row = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId("log_ev")
+            .setLabel("✅ Evet, Ayarla")
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId("log_hayir")
+            .setLabel("❌ Hayır, Gerek Yok")
+            .setStyle(ButtonStyle.Secondary)
+        );
+
+        await i.update({ embeds: [embed], components: [row] });
+      }
+
+      if (i.customId === "log_ev") {
+        const embed = new EmbedBuilder()
+          .setColor("Blurple")
+          .setTitle("📡 Log Kanalı Seçimi")
+          .setDescription("Lütfen log embed'lerinin gönderileceği metin kanalını seçin.")
           .setTimestamp();
 
         const kanalMenu = new ActionRowBuilder().addComponents(
           new ChannelSelectMenuBuilder()
             .setCustomId("otorol_log")
-            .setPlaceholder("Log kanalı seç (isteğe bağlı)")
-            .setChannelTypes([0]) // Sadece metin kanalları
+            .setPlaceholder("Log kanalı seç")
+            .setChannelTypes([0])
         );
 
         await i.update({ embeds: [embed], components: [kanalMenu] });
+      }
+
+      if (i.customId === "log_hayir") {
+        const embed = new EmbedBuilder()
+          .setColor("Green")
+          .setTitle("✅ Sistem Güncellendi")
+          .setDescription("Oto-rol sistemi aktif edildi. Log kanalı ayarlanmadı.")
+          .setTimestamp();
+
+        await i.update({ embeds: [embed], components: [] });
       }
 
       if (i.customId === "otorol_log") {
@@ -135,12 +166,14 @@ module.exports = {
 
         const embed = new EmbedBuilder()
           .setColor("Green")
-          .setTitle("📦 Log Kanalı Ayarlandı")
-          .setDescription(`Log kanalı olarak <#${kanalId}> seçildi.`)
+          .setTitle("✅ Log Kanalı Ayarlandı")
+          .setDescription(`Log embed'leri artık <#${kanalId}> kanalına gönderilecek.`)
           .setTimestamp();
 
         await i.update({ embeds: [embed], components: [] });
       }
     });
   },
+
+  sunucuAyarları
 };
