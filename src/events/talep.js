@@ -41,12 +41,22 @@ module.exports = async (interaction) => {
       return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
+    // Kategori kontrolü ve oluşturma
+    let kategori = guild.channels.cache.find(c =>
+      c.type === ChannelType.GuildCategory && c.name === "Talepler"
+    );
+    if (!kategori) {
+      kategori = await guild.channels.create({
+        name: "Talepler",
+        type: ChannelType.GuildCategory
+      });
+    }
+
     const permissionOverwrites = [
       { id: guild.roles.everyone, deny: ["ViewChannel"] },
       { id: user.id, allow: ["ViewChannel", "SendMessages"] },
       { id: guild.ownerId, allow: ["ViewChannel", "SendMessages"] }
     ];
-
     if (destekRolId) {
       permissionOverwrites.push({ id: destekRolId, allow: ["ViewChannel", "SendMessages"] });
     }
@@ -54,6 +64,7 @@ module.exports = async (interaction) => {
     const textChannel = await guild.channels.create({
       name: kanalAdı,
       type: ChannelType.GuildText,
+      parent: kategori.id,
       permissionOverwrites
     });
 
@@ -122,9 +133,20 @@ module.exports = async (interaction) => {
       return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
+    let kategori = guild.channels.cache.find(c =>
+      c.type === ChannelType.GuildCategory && c.name === "Talepler"
+    );
+    if (!kategori) {
+      kategori = await guild.channels.create({
+        name: "Talepler",
+        type: ChannelType.GuildCategory
+      });
+    }
+
     const voiceChannel = await guild.channels.create({
       name: kanalAdı,
       type: ChannelType.GuildVoice,
+      parent: kategori.id,
       permissionOverwrites: [
         { id: guild.roles.everyone, deny: ["ViewChannel"] },
         { id: user.id, allow: ["ViewChannel", "Connect", "Speak"] },
@@ -132,7 +154,7 @@ module.exports = async (interaction) => {
       ]
     });
 
-    const embed = new EmbedBuilder()
+       const embed = new EmbedBuilder()
       .setColor("Blue")
       .setTitle("🎙️ Sesli Destek Kanalı Açıldı")
       .setDescription(`Sesli kanalın oluşturuldu: <#${voiceChannel.id}>`)
@@ -141,37 +163,33 @@ module.exports = async (interaction) => {
 
     return interaction.reply({ embeds: [embed], ephemeral: true });
   }
+    if (id.startsWith("talep_destek_")) {
+    const destekRolId = id.split("_")[3];
 
-    // 📢 Destek Ekibini Çağır
-  // 📢 Destek Ekibini Çağır
-if (id.startsWith("talep_destek_")) {
-  const destekRolId = id.split("_")[3];
-
-  const embed = new EmbedBuilder()
-    .setColor("Yellow")
-    .setTitle("📢 Destek Ekibi Çağrıldı")
-    .setDescription("Değerli Destek Ekibi, lütfen açılan kanaldaki destek talebine **15 dakika içinde** yanıt verin. Aksi takdirde talep süresi dolduğunda otomatik olarak kapanacaktır.")
-    .setFooter({ text: "GraveBOT Talep Sistemi" })
-    .setTimestamp();
-
-  if (destekRolId !== "none") {
-    return interaction.reply({
-      content: `<@&${destekRolId}>`,
-      embeds: [embed]
-    });
-  } else {
-    const bilgiEmbed = new EmbedBuilder()
-      .setColor("Grey")
-      .setTitle("ℹ️ Destek Rolü Tanımlı Değil")
-      .setDescription("Bu sunucuda destek ekibi rolü tanımlanmadığı için çağrı gönderilemedi.\nYine de talebiniz açık kalacaktır.")
+    const embed = new EmbedBuilder()
+      .setColor("Yellow")
+      .setTitle("📢 Destek Ekibi Çağrıldı")
+      .setDescription("Değerli Destek Ekibi, lütfen açılan kanaldaki destek talebine **15 dakika içinde** yanıt verin. Aksi takdirde talep süresi dolduğunda otomatik olarak kapanacaktır.")
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
-    return interaction.reply({ embeds: [bilgiEmbed], ephemeral: true });
+    if (destekRolId !== "none") {
+      return interaction.reply({
+        content: `<@&${destekRolId}>`,
+        embeds: [embed]
+      });
+    } else {
+      const bilgiEmbed = new EmbedBuilder()
+        .setColor("Grey")
+        .setTitle("ℹ️ Destek Rolü Tanımlı Değil")
+        .setDescription("Bu sunucuda destek ekibi rolü tanımlanmadığı için çağrı gönderilemedi.\nYine de talebiniz açık kalacaktır.")
+        .setFooter({ text: "GraveBOT Talep Sistemi" })
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [bilgiEmbed], ephemeral: true });
+    }
   }
-}
-    // ❌ Talebi Kapat
-  if (id.startsWith("talep_kapat_")) {
+    if (id.startsWith("talep_kapat_")) {
     const embed = new EmbedBuilder()
       .setColor("Red")
       .setTitle("📪 Talep Kapatılıyor")
