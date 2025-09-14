@@ -13,44 +13,31 @@ module.exports = async (interaction) => {
   const user = interaction.user;
   const guild = interaction.guild;
 
-  const hedefId = id.split("_")[2];
-  const isKurucu = user.id === guild.ownerId;
-  const isTalepSahibi = user.id === hedefId;
-
-  if (!isKurucu && !isTalepSahibi) {
-    return interaction.reply({
-      content: "🚫 Bu butonu sadece talep sahibi veya kurucu kullanabilir.",
-      ephemeral: true
-    });
-  }
-
   // ❌ Hayır Açma
-  if (id.startsWith("talep_red_")) {
-    return interaction.update({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Red")
-          .setTitle("❌ Talep İptal Edildi")
-          .setDescription("Onaylandı, talep açılmıyor.")
-      ],
-      components: []
-    });
+  if (id === "talep_red") {
+    const embed = new EmbedBuilder()
+      .setColor("Red")
+      .setTitle("❌ Talep İptal Edildi")
+      .setDescription("Talep açma işlemi iptal edildi.")
+      .setFooter({ text: "GraveBOT Talep Sistemi" })
+      .setTimestamp();
+
+    return interaction.reply({ embeds: [embed], ephemeral: true });
   }
 
   // ✅ Evet Aç
-  if (id.startsWith("talep_onay_")) {
+  if (id === "talep_onay") {
     const kanalAdı = `talep-${user.username}`;
     const varMi = guild.channels.cache.find(c => c.name === kanalAdı);
     if (varMi) {
-      return interaction.update({
-        embeds: [
-          new EmbedBuilder()
-            .setColor("Orange")
-            .setTitle("⚠️ Zaten Açık Talebin Var")
-            .setDescription(`Zaten açık bir talep kanalın var: <#${varMi.id}>`)
-        ],
-        components: []
-      });
+      const embed = new EmbedBuilder()
+        .setColor("Orange")
+        .setTitle("⚠️ Zaten Açık Talep Var")
+        .setDescription(`Zaten açık bir talep kanalın var: <#${varMi.id}>`)
+        .setFooter({ text: "GraveBOT Talep Sistemi" })
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     const textChannel = await guild.channels.create({
@@ -58,8 +45,7 @@ module.exports = async (interaction) => {
       type: ChannelType.GuildText,
       permissionOverwrites: [
         { id: guild.roles.everyone, allow: ["ViewChannel"] },
-        { id: user.id, allow: ["SendMessages"] },
-        { id: guild.ownerId, allow: ["SendMessages"] }
+        { id: user.id, allow: ["SendMessages"] }
       ]
     });
 
@@ -67,7 +53,7 @@ module.exports = async (interaction) => {
     const embed = new EmbedBuilder()
       .setColor("Green")
       .setTitle("📨 Talep Açıldı")
-      .setDescription(`**Talep Sahibi:** <@${user.id}>\n**Talep ID:** \`${talepID}\`\n**Talep Süresi:** 15 dakika\n\n⏱️ 15 Dakikanız başlamıştır. Aşağıdaki butonları kullanabilirsiniz.`)
+      .setDescription(`**Talep Sahibi:** <@${user.id}>\n**Talep ID:** \`${talepID}\`\n**Talep Süresi:** 15 dakika\n\n⏱️ 15 Dakikanız başladı. Aşağıdaki butonları kullanabilirsiniz.`)
       .setThumbnail(user.displayAvatarURL())
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
@@ -85,15 +71,14 @@ module.exports = async (interaction) => {
 
     await textChannel.send({ embeds: [embed], components: [row] });
 
-    await interaction.update({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Green")
-          .setTitle("✅ Talep Açıldı")
-          .setDescription(`Talep kanalın oluşturuldu: <#${textChannel.id}>`)
-      ],
-      components: []
-    });
+    const onayEmbed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle("✅ Talep Kanalı Oluşturuldu")
+      .setDescription(`Talep kanalın hazır: <#${textChannel.id}>`)
+      .setFooter({ text: "GraveBOT Talep Sistemi" })
+      .setTimestamp();
+
+    await interaction.reply({ embeds: [onayEmbed], ephemeral: true });
 
     setTimeout(async () => {
       const kanallar = guild.channels.cache.filter(c =>
@@ -115,10 +100,14 @@ module.exports = async (interaction) => {
     const kanalAdı = `destek-${user.username}`;
     const varMi = guild.channels.cache.find(c => c.name === kanalAdı);
     if (varMi) {
-      return interaction.reply({
-        content: `⚠️ Zaten açık bir sesli kanalın var: <#${varMi.id}>`,
-        ephemeral: true
-      });
+      const embed = new EmbedBuilder()
+        .setColor("Orange")
+        .setTitle("⚠️ Zaten Açık Sesli Kanal Var")
+        .setDescription(`Zaten açık bir sesli kanalın var: <#${varMi.id}>`)
+        .setFooter({ text: "GraveBOT Talep Sistemi" })
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     const voiceChannel = await guild.channels.create({
@@ -126,21 +115,22 @@ module.exports = async (interaction) => {
       type: ChannelType.GuildVoice,
       permissionOverwrites: [
         { id: guild.roles.everyone, allow: ["ViewChannel"] },
-        { id: user.id, allow: ["Connect", "Speak"] },
-        { id: guild.ownerId, allow: ["Connect", "Speak"] }
+        { id: user.id, allow: ["Connect", "Speak"] }
       ]
     });
 
-    return interaction.reply({
-      content: `🎙️ Sesli destek kanalın oluşturuldu: <#${voiceChannel.id}>`,
-      ephemeral: true
-    });
+    const embed = new EmbedBuilder()
+      .setColor("Blue")
+      .setTitle("🎙️ Sesli Destek Kanalı Açıldı")
+      .setDescription(`Sesli kanalın oluşturuldu: <#${voiceChannel.id}>`)
+      .setFooter({ text: "GraveBOT Talep Sistemi" })
+      .setTimestamp();
+
+    return interaction.reply({ embeds: [embed], ephemeral: true });
   }
 
-  // ❌ Talebi Kapat — hem metin hem sesli kanalları embedli uyarıyla siler
+  // ❌ Talebi Kapat — %100 tüm kanalları embedli uyarıyla siler
   if (id.startsWith("talep_kapat_")) {
-    const userTag = interaction.user.username;
-
     const embed = new EmbedBuilder()
       .setColor("Red")
       .setTitle("📪 Talep Kapatılıyor")
@@ -152,8 +142,8 @@ module.exports = async (interaction) => {
 
     setTimeout(async () => {
       const kanallar = guild.channels.cache.filter(c =>
-        c.name.includes(userTag) &&
-        ["talep-", "destek-"].some(prefix => c.name.startsWith(prefix))
+        ["talep-", "destek-"].some(prefix => c.name.startsWith(prefix)) &&
+        c.name.includes(user.username)
       );
 
       for (const kanal of kanallar.values()) {
