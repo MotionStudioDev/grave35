@@ -12,16 +12,18 @@ module.exports = async (client, interaction) => {
   const { guild, user, channel } = interaction;
 
   if (interaction.customId === "talep_ac") {
-    // Önceden açılmış kanal var mı kontrol et
     const mevcutKanal = guild.channels.cache.find(c =>
       c.type === ChannelType.GuildText &&
       c.name === `talep-${user.username}`
     );
     if (mevcutKanal) {
-      return interaction.reply({
-        content: `❗ Zaten açık bir talep kanalın var: <#${mevcutKanal.id}>`,
-        ephemeral: true
-      });
+      const embed = new EmbedBuilder()
+        .setColor("Yellow")
+        .setTitle("⚠️ Zaten Açık Talep Var")
+        .setDescription(`Zaten açık bir talep kanalın var: <#${mevcutKanal.id}>`)
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
     const kanal = await guild.channels.create({
@@ -35,7 +37,7 @@ module.exports = async (client, interaction) => {
 
     const embed = new EmbedBuilder()
       .setColor("Green")
-      .setTitle("📋 Talep Bilgisi")
+      .setTitle("📋 Talep Kanalı Oluşturuldu")
       .setDescription(`Talep sahibi: <@${user.id}>\nOluşturulma: <t:${Math.floor(Date.now() / 1000)}:F>\n\n> Sesli destek istersen aşağıdaki butona tıklayabilirsin.`)
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
@@ -52,7 +54,14 @@ module.exports = async (client, interaction) => {
     );
 
     await kanal.send({ content: `<@${user.id}>`, embeds: [embed], components: [row] });
-    await interaction.reply({ content: `✅ Talep kanalı oluşturuldu: ${kanal}`, ephemeral: true });
+
+    const replyEmbed = new EmbedBuilder()
+      .setColor("Blurple")
+      .setTitle("✅ Talep Kanalı Açıldı")
+      .setDescription(`Kanal oluşturuldu: <#${kanal.id}>`)
+      .setTimestamp();
+
+    await interaction.reply({ embeds: [replyEmbed], ephemeral: true });
   }
 
   if (interaction.customId === "talep_ses") {
@@ -65,43 +74,33 @@ module.exports = async (client, interaction) => {
       ]
     });
 
-    await interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Blurple")
-          .setTitle("🔊 Sesli Destek Açıldı")
-          .setDescription(`Sesli destek kanalı oluşturuldu: <#${sesKanal.id}>`)
-          .setTimestamp()
-      ],
-      ephemeral: true
-    });
+    const embed = new EmbedBuilder()
+      .setColor("Blurple")
+      .setTitle("🔊 Sesli Destek Açıldı")
+      .setDescription(`Sesli destek kanalı oluşturuldu: <#${sesKanal.id}>`)
+      .setTimestamp();
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   }
 
   if (interaction.customId === "talep_kapat") {
-    const kanal = interaction.channel;
-
-    // Sesli kanal varsa bul
     const sesKanal = guild.channels.cache.find(c =>
       c.type === ChannelType.GuildVoice &&
       c.name === `🎧 ${user.username}-destek`
     );
 
-    // Talep süresini hesapla
-    const dakika = Math.floor((Date.now() - kanal.createdTimestamp) / 60000);
+    const dakika = Math.floor((Date.now() - channel.createdTimestamp) / 60000);
 
-    await interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Red")
-          .setTitle("❌ Talep Kapatıldı")
-          .setDescription(`Talebiniz kapatıldı. Bu kanal ve varsa sesli kanal 3 saniye içinde silinecek.\n\n🕒 Destek süresi: **${dakika} dakika**`)
-          .setTimestamp()
-      ],
-      ephemeral: true
-    });
+    const embed = new EmbedBuilder()
+      .setColor("Red")
+      .setTitle("❌ Talep Kapatıldı")
+      .setDescription(`Talebiniz kapatıldı. Bu kanal ve varsa sesli kanal 3 saniye içinde silinecek.\n\n🕒 Destek süresi: **${dakika} dakika**`)
+      .setTimestamp();
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
 
     setTimeout(() => {
-      if (kanal.deletable) kanal.delete().catch(() => {});
+      if (channel.deletable) channel.delete().catch(() => {});
       if (sesKanal && sesKanal.deletable) sesKanal.delete().catch(() => {});
     }, 3000);
   }
