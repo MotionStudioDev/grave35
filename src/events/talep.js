@@ -1,4 +1,10 @@
-const { EmbedBuilder, ChannelType } = require("discord.js");
+const {
+  EmbedBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+  ChannelType
+} = require("discord.js");
 
 module.exports = async (interaction) => {
   if (!interaction.isButton()) return;
@@ -12,23 +18,29 @@ module.exports = async (interaction) => {
   const isTalepSahibi = user.id === hedefId;
 
   if (!isKurucu && !isTalepSahibi) {
-    return interaction.reply({
-      content: "🚫 Bu butonu sadece talep sahibi veya kurucu kullanabilir.",
-      ephemeral: true
-    });
+    if (!interaction.replied) {
+      return interaction.reply({
+        content: "🚫 Bu butonu sadece talep sahibi veya kurucu kullanabilir.",
+        ephemeral: true
+      });
+    }
+    return;
   }
 
   // ❌ Hayır Açma
   if (id.startsWith("talep_red_")) {
-    return interaction.update({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Red")
-          .setTitle("❌ Talep İptal Edildi")
-          .setDescription("Onaylandı, talep açılmıyor.")
-      ],
-      components: []
-    });
+    if (!interaction.replied) {
+      return interaction.update({
+        embeds: [
+          new EmbedBuilder()
+            .setColor("Red")
+            .setTitle("❌ Talep İptal Edildi")
+            .setDescription("Onaylandı, talep açılmıyor.")
+        ],
+        components: []
+      });
+    }
+    return;
   }
 
   // ✅ Evet Aç
