@@ -498,7 +498,13 @@ client.on("interactionCreate", async interaction => {
   }
 });
 /////////////////////// talep sistemi
-const { EmbedBuilder } = require("discord.js");
+const {
+  EmbedBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+  ChannelType
+} = require("discord.js");
 const db = require("croxydb");
 
 client.on("interactionCreate", async interaction => {
@@ -509,7 +515,7 @@ client.on("interactionCreate", async interaction => {
   if (interaction.customId === "talep_ac") {
     const kanal = await guild.channels.create({
       name: `talep-${user.username}`,
-      type: 0,
+      type: ChannelType.GuildText,
       permissionOverwrites: [
         { id: guild.id, deny: ["ViewChannel"] },
         { id: user.id, allow: ["ViewChannel", "SendMessages"] }
@@ -588,7 +594,7 @@ client.on("interactionCreate", async interaction => {
   if (interaction.customId === "talep_ses") {
     const sesKanal = await guild.channels.create({
       name: `🎧 ${user.username}-destek`,
-      type: 2,
+      type: ChannelType.GuildVoice,
       permissionOverwrites: [
         { id: guild.id, deny: ["ViewChannel"] },
         { id: user.id, allow: ["ViewChannel", "Connect", "Speak"] }
