@@ -1,53 +1,91 @@
-// src/commands/emoji-bilgi.js
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder
+} = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("emoji-bilgi")
-    .setDescription("Bir emoji hakkında bilgi verir.")
+    .setDescription("Bir emoji hakkında detaylı bilgi al.")
     .addStringOption(option =>
-      option
-        .setName("emoji")
-        .setDescription("Emoji giriniz (örn: :smile: veya direkt tıkla)")
+      option.setName("emoji")
+        .setDescription("Özel emoji gir (örnek: <:grave:123456789012345678>)")
         .setRequired(true)
     ),
 
-  async execute(interaction, client) {
+  async execute(interaction) {
     const emojiInput = interaction.options.getString("emoji");
-
-    // Emoji ID'sini yakala
-    const regex = /<(a)?:\w+:(\d+)>/;
-    const match = emojiInput.match(regex);
+    const emojiRegex = /<(a?):(\w+):(\d+)>/;
+    const match = emojiInput.match(emojiRegex);
 
     if (!match) {
-      return interaction.reply({
-        content: "❌ Lütfen sunucuya ait geçerli bir emoji giriniz.",
-        ephemeral: true,
-      });
+      const hataEmbed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("❌ Geçersiz Emoji")
+        .setDescription("Lütfen özel bir sunucu emojisi gir (örnek: `<:grave:123456789012345678>`).")
+        .setTimestamp();
+      return interaction.reply({ embeds: [hataEmbed], ephemeral: true });
     }
 
-    const emojiId = match[2];
-    const emoji = interaction.guild.emojis.cache.get(emojiId);
+    const animasyonluMu = match[1] === "a";
+    const emojiAdı = match[2];
+    const emojiID = match[3];
+    const emojiURL = `https://cdn.discordapp.com/emojis/${emojiID}.${animasyonluMu ? "gif" : "png"}`;
 
-    if (!emoji) {
-      return interaction.reply({
-        content: "❌ Bu emoji bu sunucuda bulunamadı.",
-        ephemeral: true,
-      });
-    }
+    const renkler = ["Blurple", "Green", "Gold", "#ff00ff", "#00ffff"];
+    const rastgeleRenk = renkler[Math.floor(Math.random() * renkler.length)];
 
     const embed = new EmbedBuilder()
-      .setColor("Green")
-      .setTitle(`Emoji Bilgisi: ${emoji.name}`)
-      .setThumbnail(emoji.url)
+      .setColor(rastgeleRenk)
+      .setTitle("🔍 Emoji Bilgisi")
+      .setThumbnail(emojiURL)
       .addFields(
-        { name: "Adı", value: emoji.name, inline: true },
-        { name: "Animasyonlu mu?", value: emoji.animated ? "Evet ✅" : "Hayır ❌", inline: true },
-        { name: "ID", value: emoji.id, inline: true },
-        { name: "Bağlantı", value: `[Görüntüle](${emoji.url})`, inline: true }
+        { name: "Emoji Adı", value: emojiAdı, inline: true },
+        { name: "Emoji ID", value: emojiID, inline: true },
+        { name: "Animasyonlu mu?", value: animasyonluMu ? "✅ Evet" : "❌ Hayır", inline: true },
+        { name: "Görsel Linki", value: `[Tıkla](${emojiURL})`, inline: false }
       )
+      .setFooter({ text: "Motion Studio - GraveBOT" })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed] });
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("copy_id")
+        .setLabel("ID’yi Kopyala")
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setLabel("İndir")
+        .setStyle(ButtonStyle.Link)
+        .setURL(emojiURL)
+    );
+
+    await interaction.reply({ embeds: [embed], components: [row], ephemeral: false });
   },
+
+  async handleButton(interaction) {
+    if (interaction.customId === "copy_id") {
+      const embed = interaction.message.embeds[0];
+      const emojiID = embed.fields.find(f => f.name === "Emoji ID")?.value;
+
+      if (!emojiID) {
+        const hataEmbed = new EmbedBuilder()
+          .setColor("Red")
+          .setTitle("❌ ID Bulunamadı")
+          .setDescription("Emoji ID’si embed içinde bulunamadı.")
+          .setTimestamp();
+        return interaction.reply({ embeds: [hataEmbed], ephemeral: true });
+      }
+
+      const kopyaEmbed = new EmbedBuilder()
+        .setColor("Green")
+        .setTitle("📋 Emoji ID")
+        .setDescription(`\`${emojiID}\` → kopyalamak için üzerine tıkla`)
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [kopyaEmbed], ephemeral: true });
+    }
+  }
 };
