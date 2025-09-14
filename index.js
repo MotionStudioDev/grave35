@@ -498,6 +498,9 @@ client.on("interactionCreate", async interaction => {
   }
 });
 /////////////////////// talep sistemi
+const { EmbedBuilder } = require("discord.js");
+const db = require("croxydb");
+
 client.on("interactionCreate", async interaction => {
   if (!interaction.isButton()) return;
 
@@ -548,6 +551,24 @@ client.on("interactionCreate", async interaction => {
         }).then(() => kanal.delete().catch(() => {}));
       }
     }, 15 * 60 * 1000);
+
+    // 📋 Log gönder (isteğe bağlı)
+    const logID = db.get(`talep_log_${guild.id}`);
+    const logChannel = guild.channels.cache.get(logID);
+    if (logChannel) {
+      const logEmbed = new EmbedBuilder()
+        .setColor("Blurple")
+        .setTitle("📩 Yeni Talep Açıldı")
+        .addFields(
+          { name: "Kullanıcı", value: `<@${user.id}>`, inline: true },
+          { name: "Kanal", value: `<#${kanal.id}>`, inline: true },
+          { name: "Zaman", value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true }
+        )
+        .setFooter({ text: "GraveBOT Talep Sistemi" })
+        .setTimestamp();
+
+      logChannel.send({ embeds: [logEmbed] }).catch(() => {});
+    }
   }
 
   if (interaction.customId === "talep_kapat") {
@@ -565,12 +586,12 @@ client.on("interactionCreate", async interaction => {
   }
 
   if (interaction.customId === "talep_ses") {
-    const sesKanal = await interaction.guild.channels.create({
-      name: `🎧 ${interaction.user.username}-destek`,
+    const sesKanal = await guild.channels.create({
+      name: `🎧 ${user.username}-destek`,
       type: 2,
       permissionOverwrites: [
-        { id: interaction.guild.id, deny: ["ViewChannel"] },
-        { id: interaction.user.id, allow: ["ViewChannel", "Connect", "Speak"] }
+        { id: guild.id, deny: ["ViewChannel"] },
+        { id: user.id, allow: ["ViewChannel", "Connect", "Speak"] }
       ]
     });
 
