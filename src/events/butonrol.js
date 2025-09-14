@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, PermissionsBitField } = require("discord.js");
 
 module.exports = async (interaction) => {
   if (!interaction.isButton()) return;
@@ -9,6 +9,7 @@ module.exports = async (interaction) => {
   const rolId = customId.split("_")[1];
   const member = interaction.member;
   const guild = interaction.guild;
+  const bot = guild.members.me;
 
   const rol = guild.roles.cache.get(rolId);
   if (!rol) {
@@ -18,6 +19,21 @@ module.exports = async (interaction) => {
           .setColor("Red")
           .setTitle("❌ Rol Bulunamadı")
           .setDescription("Bu rol artık sunucuda mevcut değil.")
+      ],
+      ephemeral: true
+    });
+  }
+
+  const yetkisiVarMi = bot.permissions.has(PermissionsBitField.Flags.ManageRoles);
+  const pozisyonUygunMu = bot.roles.highest.position > rol.position;
+
+  if (!yetkisiVarMi || !pozisyonUygunMu) {
+    return interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("Red")
+          .setTitle("🚫 Yetki Yetersiz")
+          .setDescription("Botun rolü vermek için yeterli yetkisi veya rol pozisyonu yok.")
       ],
       ephemeral: true
     });
@@ -56,7 +72,7 @@ module.exports = async (interaction) => {
         new EmbedBuilder()
           .setColor("Red")
           .setTitle("⚠️ Hata Oluştu")
-          .setDescription("Rol verilirken bir hata oluştu. Yetkileri kontrol et.")
+          .setDescription("Rol verilirken bir hata oluştu. Yetkileri ve rol pozisyonunu kontrol et.")
       ],
       ephemeral: true
     });
