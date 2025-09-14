@@ -16,8 +16,8 @@ module.exports = {
     const user = interaction.user;
     const guild = interaction.guild;
 
-    // Talep metin kanalı oluştur
-    const kanal = await guild.channels.create({
+    // Metin kanalı oluştur
+    const textChannel = await guild.channels.create({
       name: `talep-${user.username}`,
       type: 0, // GUILD_TEXT
       permissionOverwrites: [
@@ -39,8 +39,8 @@ module.exports = {
     // Embed mesaj
     const embed = new EmbedBuilder()
       .setColor("Blurple")
-      .setTitle("📩 Yeni Talep")
-      .setDescription(`**Talep Sahibi:** <@${user.id}>\nTalep oluşturuldu. Aşağıdaki butonları kullanabilirsin.`)
+      .setTitle("📩 Talep Oluşturuldu")
+      .setDescription(`**Talep Sahibi:** <@${user.id}>\nTalep kanalın oluşturuldu. Aşağıdaki butonları kullanabilirsin.`)
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
@@ -55,7 +55,7 @@ module.exports = {
         .setStyle(ButtonStyle.Primary)
     );
 
-    await kanal.send({ embeds: [embed], components: [row] });
-    await interaction.reply({ content: `✅ Talep kanalın oluşturuldu: <#${kanal.id}>`, ephemeral: true });
+    await textChannel.send({ embeds: [embed], components: [row] });
+    await interaction.reply({ content: `✅ Talep kanalın oluşturuldu: <#${textChannel.id}>`, ephemeral: true });
   }
 };
