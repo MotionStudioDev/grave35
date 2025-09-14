@@ -491,7 +491,13 @@ client.on("interactionCreate", async interaction => {
 });
 /////////////////////// talep sistemi
 const talepHandler = require("./src/events/talep.js");
-client.on("interactionCreate", interaction => talepHandler(client, interaction));
+client.on("interactionCreate", async interaction => {
+  try {
+    await talepHandler(interaction);
+  } catch (err) {
+    console.log(`[Talep Sistemi] Hata: ${err.message}`);
+  }
+});
 ///// spam sistemi 
 const spamHandler = require("./src/events/spam.js");
 client.on("messageCreate", message => spamHandler(client, message));
