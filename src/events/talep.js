@@ -143,25 +143,33 @@ module.exports = async (interaction) => {
   }
 
     // 📢 Destek Ekibini Çağır
-  if (id.startsWith("talep_destek_")) {
-    const destekRolId = id.split("_")[3];
+  // 📢 Destek Ekibini Çağır
+if (id.startsWith("talep_destek_")) {
+  const destekRolId = id.split("_")[3];
 
-    const embed = new EmbedBuilder()
-      .setColor("Yellow")
-      .setTitle("📢 Destek Ekibi Çağrıldı")
-      .setDescription("Değerli Destek Ekibi, lütfen açılan kanaldaki destek talebine **15 dakika içinde** yanıt verin. Aksi takdirde talep süresi dolduğunda otomatik olarak kapanacaktır.")
+  const embed = new EmbedBuilder()
+    .setColor("Yellow")
+    .setTitle("📢 Destek Ekibi Çağrıldı")
+    .setDescription("Değerli Destek Ekibi, lütfen açılan kanaldaki destek talebine **15 dakika içinde** yanıt verin. Aksi takdirde talep süresi dolduğunda otomatik olarak kapanacaktır.")
+    .setFooter({ text: "GraveBOT Talep Sistemi" })
+    .setTimestamp();
+
+  if (destekRolId !== "none") {
+    return interaction.reply({
+      content: `<@&${destekRolId}>`,
+      embeds: [embed]
+    });
+  } else {
+    const bilgiEmbed = new EmbedBuilder()
+      .setColor("Grey")
+      .setTitle("ℹ️ Destek Rolü Tanımlı Değil")
+      .setDescription("Bu sunucuda destek ekibi rolü tanımlanmadığı için çağrı gönderilemedi.\nYine de talebiniz açık kalacaktır.")
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
-    if (destekRolId !== "none") {
-      return interaction.reply({
-        content: `<@&${destekRolId}>`,
-        embeds: [embed]
-      });
-    } else {
-      return interaction.reply({ embeds: [embed] });
-    }
+    return interaction.reply({ embeds: [bilgiEmbed], ephemeral: true });
   }
+}
     // ❌ Talebi Kapat
   if (id.startsWith("talep_kapat_")) {
     const embed = new EmbedBuilder()
