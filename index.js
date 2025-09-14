@@ -498,3 +498,6 @@ client.on("messageCreate", message => spamHandler(client, message));
 /////////oto rol
 const otoRolHandler = require("./src/events/guildMemberAdd.js");
 client.on("guildMemberAdd", member => otoRolHandler(client, member));
+/////// butonrol 
+const butonRolHandler = require("./events/butonrol.js");
+client.on("interactionCreate", interaction => butonRolHandler(interaction));
