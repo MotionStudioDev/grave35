@@ -9,25 +9,33 @@ const {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("talep")
-    .setDescription("Talep başlatmak için onay ekranı sunar."),
+    .setDescription("Talep başlatmak için kurucu yetkisi gereklidir."),
 
   async execute(interaction) {
     const user = interaction.user;
+    const guild = interaction.guild;
+
+    if (user.id !== guild.ownerId) {
+      return interaction.reply({
+        content: "🚫 Bu komutu sadece sunucu kurucusu kullanabilir.",
+        ephemeral: true
+      });
+    }
 
     const embed = new EmbedBuilder()
       .setColor("Blurple")
-      .setTitle("📩 Talep Başlatma")
-      .setDescription(`Bir talep oluşturmak üzeresin.\n\n**Eğer talep açmak istiyorsan** ✅ Evet Aç butonuna bas.\n**İstemiyorsan** ❌ Hayır Açma butonuna bas.`)
-      .setFooter({ text: "GraveBOT Talep Sistemi" })
+      .setTitle("📩 Talep Sistemi Başlatıldı")
+      .setDescription(`Talep açmak isteyenler aşağıdaki butonları kullanabilir.\n\n✅ Evet Aç → Talep kanalı oluşturur\n❌ Hayır Açma → Talep iptal edilir`)
+      .setFooter({ text: "Kurucu tarafından başlatıldı" })
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`talep_onay_${user.id}`)
+        .setCustomId(`talep_onay`)
         .setLabel("✅ Evet Aç")
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
-        .setCustomId(`talep_red_${user.id}`)
+        .setCustomId(`talep_red`)
         .setLabel("❌ Hayır Açma")
         .setStyle(ButtonStyle.Danger)
     );
