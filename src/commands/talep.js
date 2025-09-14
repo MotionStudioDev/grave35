@@ -3,59 +3,35 @@ const {
   EmbedBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ActionRowBuilder,
-  PermissionFlagsBits
+  ActionRowBuilder
 } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("talep")
-    .setDescription("Yeni bir talep oluşturur."),
+    .setDescription("Talep başlatmak için onay ekranı sunar."),
 
   async execute(interaction) {
     const user = interaction.user;
-    const guild = interaction.guild;
 
-    // Metin kanalı oluştur
-    const textChannel = await guild.channels.create({
-      name: `talep-${user.username}`,
-      type: 0, // GUILD_TEXT
-      permissionOverwrites: [
-        {
-          id: guild.roles.everyone,
-          deny: ["ViewChannel"]
-        },
-        {
-          id: user.id,
-          allow: ["ViewChannel", "SendMessages"]
-        },
-        {
-          id: guild.ownerId,
-          allow: ["ViewChannel", "SendMessages"]
-        }
-      ]
-    });
-
-    // Embed mesaj
     const embed = new EmbedBuilder()
       .setColor("Blurple")
-      .setTitle("📩 Talep Oluşturuldu")
-      .setDescription(`**Talep Sahibi:** <@${user.id}>\nTalep kanalın oluşturuldu. Aşağıdaki butonları kullanabilirsin.`)
+      .setTitle("📩 Talep Başlatma")
+      .setDescription(`Bir talep oluşturmak üzeresin.\n\n**Eğer talep açmak istiyorsan** ✅ Evet Aç butonuna bas.\n**İstemiyorsan** ❌ Hayır Açma butonuna bas.`)
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`talep_kapat_${user.id}`)
-        .setLabel("❌ Talebi Kapat")
-        .setStyle(ButtonStyle.Danger),
+        .setCustomId(`talep_onay_${user.id}`)
+        .setLabel("✅ Evet Aç")
+        .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
-        .setCustomId(`talep_sesli_${user.id}`)
-        .setLabel("🎙️ Sesli Destek")
-        .setStyle(ButtonStyle.Primary)
+        .setCustomId(`talep_red_${user.id}`)
+        .setLabel("❌ Hayır Açma")
+        .setStyle(ButtonStyle.Danger)
     );
 
-    await textChannel.send({ embeds: [embed], components: [row] });
-    await interaction.reply({ content: `✅ Talep kanalın oluşturuldu: <#${textChannel.id}>`, ephemeral: true });
+    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
   }
 };
