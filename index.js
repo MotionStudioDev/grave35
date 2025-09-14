@@ -500,3 +500,7 @@ client.on("interactionCreate", async interaction => {
 /////////////////////// talep sistemi
 const talepHandler = require("./src/events/talep.js");
 client.on("interactionCreate", interaction => talepHandler(client, interaction));
+///// spam sistemi 
+const spamHandler = require("./src/events/spam.js");
+client.on("messageCreate", message => spamHandler(client, message));
+/////////
