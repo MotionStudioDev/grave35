@@ -120,19 +120,31 @@ module.exports = {
 
         const row = new ActionRowBuilder().addComponents(
           new ButtonBuilder()
-            .setCustomId("log_ev")
-            .setLabel("✅ Evet, Ayarla")
+            .setCustomId("log_ayarla")
+            .setLabel("✅ Log Kanalı Ayarla")
             .setStyle(ButtonStyle.Success),
           new ButtonBuilder()
-            .setCustomId("log_hayir")
-            .setLabel("❌ Hayır, Gerek Yok")
+            .setCustomId("log_gec")
+            .setLabel("❌ Gerek Yok")
             .setStyle(ButtonStyle.Secondary)
         );
 
         await i.update({ embeds: [embed], components: [row] });
       }
 
-      if (i.customId === "log_ev") {
+      if (i.customId === "log_ayarla") {
+        if (i.user.id !== i.guild.ownerId) {
+          return i.reply({
+            embeds: [
+              new EmbedBuilder()
+                .setColor("Red")
+                .setTitle("🚫 Yetki Yetersiz")
+                .setDescription("Log kanalını sadece sunucu kurucusu ayarlayabilir.")
+            ],
+            ephemeral: true
+          });
+        }
+
         const embed = new EmbedBuilder()
           .setColor("Blurple")
           .setTitle("📡 Log Kanalı Seçimi")
@@ -149,7 +161,7 @@ module.exports = {
         await i.update({ embeds: [embed], components: [kanalMenu] });
       }
 
-      if (i.customId === "log_hayir") {
+      if (i.customId === "log_gec") {
         const embed = new EmbedBuilder()
           .setColor("Green")
           .setTitle("✅ Sistem Güncellendi")
