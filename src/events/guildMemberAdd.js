@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, PermissionsBitField } = require("discord.js");
 const { sunucuAyarları } = require("../commands/otorol.js");
 
 module.exports = async (client, member) => {
@@ -9,20 +9,32 @@ module.exports = async (client, member) => {
   if (!rolId) return;
 
   try {
-    await member.roles.add(rolId);
+    const rol = member.guild.roles.cache.get(rolId);
+    const bot = member.guild.members.me;
+
+    const yetkisiVarMi = bot.permissions.has(PermissionsBitField.Flags.ManageRoles);
+    const pozisyonUygunMu = rol && bot.roles.highest.position > rol.position;
+
+    if (yetkisiVarMi && pozisyonUygunMu) {
+      await member.roles.add(rolId);
+    } else {
+      console.log(`[OtoRol] Rol verilemedi: Yetki veya rol pozisyonu yetersiz.`);
+    }
 
     if (ayar.logKanalId) {
-      const embed = new EmbedBuilder()
-        .setColor("Blurple")
-        .setTitle("🎉 Oto-Rol Verildi")
-        .setDescription(`${member.user.bot ? "🤖 Bot" : "👤 Üye"} <@${member.id}> giriş yaptı ve <@&${rolId}> rolü verildi.`)
-        .setFooter({ text: "GraveBOT Oto-Rol Sistemi" })
-        .setTimestamp();
-
       const kanal = member.guild.channels.cache.get(ayar.logKanalId);
-      if (kanal && kanal.isTextBased()) kanal.send({ embeds: [embed] });
+      if (kanal && kanal.isTextBased()) {
+        const embed = new EmbedBuilder()
+          .setColor("Blurple")
+          .setTitle("🎉 Oto-Rol Verildi")
+          .setDescription(`${member.user.bot ? "🤖 Bot" : "👤 Üye"} <@${member.id}> giriş yaptı ve <@&${rolId}> rolü verildi.`)
+          .setFooter({ text: "GraveBOT Oto-Rol Sistemi" })
+          .setTimestamp();
+
+        kanal.send({ embeds: [embed] }).catch(() => {});
+      }
     }
   } catch (err) {
-    console.log(`[OtoRol] Rol verilemedi: ${err.message}`);
+    console.log(`[OtoRol] Rol verme hatası: ${err.message}`);
   }
 };
