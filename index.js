@@ -475,9 +475,18 @@ client.on("interactionCreate", async interaction => {
 /////////////////// EMOJİ-BİLGİ
 client.on("interactionCreate", async interaction => {
   if (interaction.isButton()) {
-    const command = client.commands.get("emoji-bilgi");
-    if (command && typeof command.handleButton === "function") {
-      await command.handleButton(interaction);
+    const customId = interaction.customId;
+
+    if (customId.startsWith("copy_")) {
+      const emojiID = customId.split("_")[1];
+
+      const embed = new EmbedBuilder()
+        .setColor("Green")
+        .setTitle("📋 Emoji ID")
+        .setDescription(`\`${emojiID}\` → kopyalamak için üzerine tıkla`)
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
   }
 
