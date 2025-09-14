@@ -137,24 +137,31 @@ module.exports = async (interaction) => {
     });
   }
 
-  // ❌ Talebi Kapat — senin istediğin gibi: uyarı embed + 3 saniye sonra silme
+  // ❌ Talebi Kapat — hem metin hem sesli kanalları embedli uyarıyla siler
   if (id.startsWith("talep_kapat_")) {
-    const kanal = interaction.channel;
+    const userTag = interaction.user.username;
 
     const embed = new EmbedBuilder()
       .setColor("Red")
       .setTitle("📪 Talep Kapatılıyor")
-      .setDescription("Talep başarıyla kapatıldı. Bu kanal 3 saniye içinde otomatik olarak silinecek.")
+      .setDescription("Talep başarıyla kapatıldı. Tüm ilgili kanallar 3 saniye içinde otomatik olarak silinecek.")
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });
 
     setTimeout(async () => {
-      try {
-        await kanal.delete();
-      } catch (err) {
-        console.log(`[Talep Kapat] Kanal silinemedi: ${err.message}`);
+      const kanallar = guild.channels.cache.filter(c =>
+        c.name.includes(userTag) &&
+        ["talep-", "destek-"].some(prefix => c.name.startsWith(prefix))
+      );
+
+      for (const kanal of kanallar.values()) {
+        try {
+          await kanal.delete();
+        } catch (err) {
+          console.log(`[Talep Kapat] Kanal silinemedi: ${err.message}`);
+        }
       }
     }, 3000);
   }
