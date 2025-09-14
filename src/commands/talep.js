@@ -3,7 +3,8 @@ const {
   EmbedBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ActionRowBuilder
+  ActionRowBuilder,
+  PermissionFlagsBits
 } = require("discord.js");
 
 module.exports = {
@@ -18,6 +19,17 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+      const yetkiEmbed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("🚫 Yetki Yetersiz")
+        .setDescription("Bu komutu sadece yöneticiler kullanabilir.")
+        .setFooter({ text: "GraveBOT Talep Sistemi" })
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [yetkiEmbed], ephemeral: true });
+    }
+
     const özelMesaj = interaction.options.getString("mesaj");
 
     const embed = new EmbedBuilder()
