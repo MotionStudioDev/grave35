@@ -51,16 +51,18 @@ module.exports = async (interaction) => {
       name: kanalAdı,
       type: ChannelType.GuildText,
       permissionOverwrites: [
-        { id: guild.roles.everyone, deny: ["ViewChannel"] },
-        { id: user.id, allow: ["ViewChannel", "SendMessages"] },
-        { id: guild.ownerId, allow: ["ViewChannel", "SendMessages"] }
+        { id: guild.roles.everyone, allow: ["ViewChannel"] },
+        { id: user.id, allow: ["SendMessages"] },
+        { id: guild.ownerId, allow: ["SendMessages"] }
       ]
     });
 
+    const talepID = Math.floor(100000 + Math.random() * 900000);
     const embed = new EmbedBuilder()
       .setColor("Green")
       .setTitle("📨 Talep Açıldı")
-      .setDescription(`**Talep Sahibi:** <@${user.id}>\n**Talep Süresi:** 15 dakika\n\n⏱️ 15 Dakikanız başlamıştır. Aşağıdaki butonları kullanabilirsiniz.`)
+      .setDescription(`**Talep Sahibi:** <@${user.id}>\n**Talep ID:** \`${talepID}\`\n**Talep Süresi:** 15 dakika\n\n⏱️ 15 Dakikanız başlamıştır. Aşağıdaki butonları kullanabilirsiniz.`)
+      .setThumbnail(user.displayAvatarURL())
       .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
@@ -118,9 +120,9 @@ module.exports = async (interaction) => {
       name: kanalAdı,
       type: ChannelType.GuildVoice,
       permissionOverwrites: [
-        { id: guild.roles.everyone, deny: ["ViewChannel"] },
-        { id: user.id, allow: ["ViewChannel", "Connect", "Speak"] },
-        { id: guild.ownerId, allow: ["ViewChannel", "Connect", "Speak"] }
+        { id: guild.roles.everyone, allow: ["ViewChannel"] },
+        { id: user.id, allow: ["Connect", "Speak"] },
+        { id: guild.ownerId, allow: ["Connect", "Speak"] }
       ]
     });
 
