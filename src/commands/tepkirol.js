@@ -1,66 +1,72 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const db = require("croxydb");
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+  PermissionFlagsBits
+} = require("discord.js");
+
+// Kanal bazlı mesaj ID'lerini tutan Map
+const kanalMesajlar = new Map();
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("tepkirol")
-    .setDescription("Emojiye tepki vererek rol alma mesajı oluşturur.")
-    .addStringOption(option =>
-      option.setName("emoji1").setDescription("1. emoji").setRequired(true))
+    .setName("butonrol")
+    .setDescription("Rol verme butonunu gönderir veya mevcut mesaja ekler.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addRoleOption(option =>
-      option.setName("rol1").setDescription("1. emojiye karşılık gelen rol").setRequired(true))
+      option.setName("rol").setDescription("Verilecek rol").setRequired(true)
+    )
     .addStringOption(option =>
-      option.setName("emoji2").setDescription("2. emoji").setRequired(false))
-    .addRoleOption(option =>
-      option.setName("rol2").setDescription("2. emojiye karşılık gelen rol").setRequired(false))
-    .addStringOption(option =>
-      option.setName("emoji3").setDescription("3. emoji").setRequired(false))
-    .addRoleOption(option =>
-      option.setName("rol3").setDescription("3. emojiye karşılık gelen rol").setRequired(false)),
+      option.setName("mesaj").setDescription("İsteğe bağlı özel mesaj").setRequired(false)
+    ),
 
-  async execute(interaction, client) {
-    const emojis = [];
-    const roles = [];
+  async execute(interaction) {
+    const rol = interaction.options.getRole("rol");
+    const mesaj = interaction.options.getString("mesaj") || `Aşağıdaki butona basarak <@&${rol.id}> rolünü alabilir veya kaldırabilirsin.`;
+    const kanalId = interaction.channel.id;
 
-    for (let i = 1; i <= 3; i++) {
-      const emoji = interaction.options.getString(`emoji${i}`);
-      const rol = interaction.options.getRole(`rol${i}`);
-      if (emoji && rol) {
-        emojis.push(emoji);
-        roles.push(rol);
+    const yeniButon = new ButtonBuilder()
+      .setCustomId(`butonrol_${rol.id}`)
+      .setLabel(rol.name)
+      .setStyle(ButtonStyle.Primary);
+
+    const row = new ActionRowBuilder().addComponents(yeniButon);
+
+    if (kanalMesajlar.has(kanalId)) {
+      try {
+        const eskiMesajId = kanalMesajlar.get(kanalId);
+        const mesajObjesi = await interaction.channel.messages.fetch(eskiMesajId);
+        const eskiRow = mesajObjesi.components[0];
+
+        // Aynı rol zaten varsa ekleme
+        if (eskiRow.components.some(b => b.customId === `butonrol_${rol.id}`)) {
+          return interaction.reply({ content: "⚠️ Bu rol zaten mevcut butonlarda var.", ephemeral: true });
+        }
+
+        const yeniRow = ActionRowBuilder.from(eskiRow).addComponents(yeniButon);
+        await mesajObjesi.edit({ components: [yeniRow] });
+        return interaction.reply({ content: "✅ Buton mevcut mesaja eklendi.", ephemeral: true });
+      } catch (err) {
+        console.log(`[ButonRol] Mesaj düzenleme hatası: ${err.message}`);
+        kanalMesajlar.delete(kanalId); // Bozuksa sil
       }
     }
 
-    if (emojis.length === 0) {
-      return interaction.reply({ content: "❌ En az 1 emoji ve rol tanımlamalısın.", ephemeral: true });
-    }
-
+    // Yeni mesaj oluştur
     const embed = new EmbedBuilder()
       .setColor("Blurple")
-      .setTitle("🎭 Rol Seçimi")
-      .setDescription(emojis.map((e, i) => `${e} = ${roles[i].name}`).join("\n"));
+      .setTitle("🎯 Rol Butonları")
+      .setDescription(mesaj)
+      .setFooter({ text: "GraveBOT Buton Rol Sistemi" })
+      .setTimestamp();
 
-    const msg = await interaction.reply({ embeds: [embed], fetchReply: true });
+    const yeniMesaj = await interaction.channel.send({ embeds: [embed], components: [row] });
+    kanalMesajlar.set(kanalId, yeniMesaj.id);
 
-    const emojiMap = {};
+    await interaction.reply({ content: "✅ Yeni rol mesajı oluşturuldu.", ephemeral: true });
+  },
 
-    for (let i = 0; i < emojis.length; i++) {
-      const raw = emojis[i];
-      const emoji = raw.match(/<a?:\w+:(\d+)>/)
-        ? client.emojis.cache.get(raw.match(/<a?:\w+:(\d+)>/)[1])
-        : raw;
-
-      try {
-        await msg.react(emoji);
-        emojiMap[raw] = roles[i].id;
-      } catch (err) {
-        console.error(`Emoji eklenemedi: ${raw}`, err);
-      }
-    }
-
-    db.set(`tepkirol_${msg.id}`, {
-      guildID: interaction.guild.id,
-      roller: emojiMap
-    });
-  }
+  kanalMesajlar
 };
