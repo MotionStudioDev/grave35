@@ -9,7 +9,7 @@ const {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("talep")
-    .setDescription("İsteğe bağlı destek talebi başlatmak için buton gönderir."),
+    .setDescription("Destek talebi başlatmak için buton gönderir."),
 
   async execute(interaction) {
     const renkler = ["Blurple", "Green", "Gold", "#ff00ff", "#00ffff"];
@@ -19,7 +19,7 @@ module.exports = {
       .setColor(rastgeleRenk)
       .setTitle("🎫 Destek Talebi")
       .setDescription("Destek ekibiyle iletişime geçmek istiyorsan aşağıdaki butona tıklayarak talep oluşturabilirsin.\n\n> Bu sistem isteğe bağlıdır. Talep açmak zorunda değilsin.")
-      .setFooter({ text: "Motion Studio - GraveBOT" })
+      .setFooter({ text: "GraveBOT Talep Sistemi" })
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
