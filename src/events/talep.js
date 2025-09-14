@@ -9,9 +9,21 @@ const {
 module.exports = async (client, interaction) => {
   if (!interaction.isButton()) return;
 
-  const { guild, user } = interaction;
+  const { guild, user, channel } = interaction;
 
   if (interaction.customId === "talep_ac") {
+    // Önceden açılmış kanal var mı kontrol et
+    const mevcutKanal = guild.channels.cache.find(c =>
+      c.type === ChannelType.GuildText &&
+      c.name === `talep-${user.username}`
+    );
+    if (mevcutKanal) {
+      return interaction.reply({
+        content: `❗ Zaten açık bir talep kanalın var: <#${mevcutKanal.id}>`,
+        ephemeral: true
+      });
+    }
+
     const kanal = await guild.channels.create({
       name: `talep-${user.username}`,
       type: ChannelType.GuildText,
@@ -41,34 +53,6 @@ module.exports = async (client, interaction) => {
 
     await kanal.send({ content: `<@${user.id}>`, embeds: [embed], components: [row] });
     await interaction.reply({ content: `✅ Talep kanalı oluşturuldu: ${kanal}`, ephemeral: true });
-
-    setTimeout(() => {
-      if (kanal && kanal.deletable) {
-        kanal.send({
-          embeds: [
-            new EmbedBuilder()
-              .setColor("Red")
-              .setTitle("⏳ Talep Süresi Doldu")
-              .setDescription("Bu kanal otomatik olarak kapatılıyor.")
-              .setTimestamp()
-          ]
-        }).then(() => kanal.delete().catch(() => {}));
-      }
-    }, 15 * 60 * 1000);
-  }
-
-  if (interaction.customId === "talep_kapat") {
-    await interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Red")
-          .setTitle("❌ Talep Kapatıldı")
-          .setDescription("Bu kanal birazdan silinecek.")
-          .setTimestamp()
-      ],
-      ephemeral: true
-    });
-    setTimeout(() => interaction.channel.delete().catch(() => {}), 3000);
   }
 
   if (interaction.customId === "talep_ses") {
@@ -91,5 +75,34 @@ module.exports = async (client, interaction) => {
       ],
       ephemeral: true
     });
+  }
+
+  if (interaction.customId === "talep_kapat") {
+    const kanal = interaction.channel;
+
+    // Sesli kanal varsa bul
+    const sesKanal = guild.channels.cache.find(c =>
+      c.type === ChannelType.GuildVoice &&
+      c.name === `🎧 ${user.username}-destek`
+    );
+
+    // Talep süresini hesapla
+    const dakika = Math.floor((Date.now() - kanal.createdTimestamp) / 60000);
+
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("Red")
+          .setTitle("❌ Talep Kapatıldı")
+          .setDescription(`Talebiniz kapatıldı. Bu kanal ve varsa sesli kanal 3 saniye içinde silinecek.\n\n🕒 Destek süresi: **${dakika} dakika**`)
+          .setTimestamp()
+      ],
+      ephemeral: true
+    });
+
+    setTimeout(() => {
+      if (kanal.deletable) kanal.delete().catch(() => {});
+      if (sesKanal && sesKanal.deletable) sesKanal.delete().catch(() => {});
+    }, 3000);
   }
 };
