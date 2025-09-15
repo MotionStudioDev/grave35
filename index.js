@@ -508,11 +508,11 @@ const butonRolHandler = require("./events/butonrol.js");
 client.on("interactionCreate", interaction => butonRolHandler(interaction));
 /// küfür sistemi
 client.on("interactionCreate", async interaction => {
-  const küfürSistemi = require("./events/küfür");
+  const küfürSistemi = require("./events/küfür.js");
   await küfürSistemi(interaction);
 });
 
 client.on("messageCreate", async message => {
-  const küfürSistemi = require("./events/küfür");
+  const küfürSistemi = require("./events/küfür.js");
   await küfürSistemi(message);
 });
