@@ -509,4 +509,38 @@ client.on("guildMemberAdd", member => otoRolHandler(client, member));
 /////// butonrol 
 const butonRolHandler = require("./events/butonrol.js");
 client.on("interactionCreate", interaction => butonRolHandler(interaction));
-/// küfür sistemi
+/// ban sistemi
+client.on("interactionCreate", async interaction => {
+  if (!interaction.isButton()) return;
+
+  const [type, hedefID, komutSahibiID] = interaction.customId.split("_");
+
+  if (interaction.user.id !== komutSahibiID) {
+    return interaction.reply({ content: "🚫 Bu buton sana ait değil.", ephemeral: true });
+  }
+
+  if (type === "ban") {
+    const hedef = await interaction.guild.members.fetch(hedefID).catch(() => null);
+    if (!hedef) return interaction.reply({ content: "❌ Kullanıcı bulunamadı.", ephemeral: true });
+
+    await hedef.ban({ reason: `Butonlu ban - ${interaction.user.tag}` }).catch(() => {
+      return interaction.reply({ content: "❌ Ban işlemi başarısız oldu.", ephemeral: true });
+    });
+
+    const embed = new EmbedBuilder()
+      .setColor("DarkRed")
+      .setTitle("✅ Banlandı")
+      .setDescription(`${hedef.user.tag} sunucudan banlandı.`);
+
+    await interaction.update({ embeds: [embed], components: [] });
+  }
+
+  if (type === "ban" && hedefID === "red") {
+    const embed = new EmbedBuilder()
+      .setColor("Grey")
+      .setTitle("❌ İşlem İptal")
+      .setDescription("Ban işlemi iptal edildi.");
+
+    await interaction.update({ embeds: [embed], components: [] });
+  }
+});
