@@ -508,11 +508,16 @@ const butonRolHandler = require("./events/butonrol.js");
 client.on("interactionCreate", interaction => butonRolHandler(interaction));
 /// küfür sistemi
 client.on("interactionCreate", async interaction => {
-  const küfürSistemi = require("./events/küfür.js");
-  await küfürSistemi(interaction);
+  if (interaction.isChatInputCommand()) {
+    const command = client.commands.get(interaction.commandName);
+    if (command) await command.execute(interaction);
+  } else if (interaction.isButton()) {
+    const butonHandler = require("./events/küfürButon");
+    await butonHandler(interaction);
+  }
 });
 
 client.on("messageCreate", async message => {
-  const küfürSistemi = require("./events/küfür.js");
-  await küfürSistemi(message);
+  const küfürKontrol = require("./events/küfürKontrol");
+  await küfürKontrol(message);
 });
