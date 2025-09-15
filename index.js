@@ -134,10 +134,7 @@ client.on("messageCreate", async (message) => {
 });
 require("./src/events/karşılama")(client);
 // 
-client.on("messageCreate", async message => {
-  const küfürKontrol = require("./events/küfürKontrol");
-  await küfürKontrol(message);
-});
+
 
 // ==== BOT LOGIN ====
 client.login(token);
