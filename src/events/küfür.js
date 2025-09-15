@@ -3,10 +3,10 @@ const db = require("croxydb");
 const fs = require("fs");
 const path = require("path");
 
-module.exports = async (interactionOrMessage) => {
+module.exports = async (data) => {
   // Slash komut: /küfür-sistemi
-  if (interactionOrMessage.isChatInputCommand?.() && interactionOrMessage.commandName === "küfür-sistemi") {
-    const interaction = interactionOrMessage;
+  if (data.isChatInputCommand?.() && data.commandName === "küfür-sistemi") {
+    const interaction = data;
     const user = interaction.user;
     const guild = interaction.guild;
     const kanal = interaction.options.getChannel("kanal");
@@ -43,8 +43,8 @@ module.exports = async (interactionOrMessage) => {
   }
 
   // Butonlar
-  if (interactionOrMessage.isButton?.()) {
-    const interaction = interactionOrMessage;
+  if (data.isButton?.()) {
+    const interaction = data;
     const id = interaction.customId;
     const user = interaction.user;
     const guild = interaction.guild;
@@ -56,6 +56,8 @@ module.exports = async (interactionOrMessage) => {
         ephemeral: true
       });
     }
+
+    if (interaction.replied || interaction.deferred) return;
 
     if (id.startsWith("kufur_onay_")) {
       const kanalID = id.split("_")[2];
@@ -89,8 +91,8 @@ module.exports = async (interactionOrMessage) => {
   }
 
   // Mesaj kontrolü
-  if (interactionOrMessage.content) {
-    const message = interactionOrMessage;
+  if (data.content) {
+    const message = data;
     if (message.author.bot || !message.guild) return;
 
     const küfürListesi = JSON.parse(fs.readFileSync(path.join(__dirname, "../küfürler.json"), "utf8"));
