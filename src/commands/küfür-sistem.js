@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require("discord.js");
 const db = require("croxydb");
 
 module.exports = {
@@ -7,6 +7,19 @@ module.exports = {
     .setDescription("Sunucuda küfür engel sistemini aç/kapat."),
   
   async execute(interaction, client) {
+    // ❗ Sadece sunucu kurucusu açabilsin
+    if (interaction.user.id !== interaction.guild.ownerId) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor("Red")
+            .setTitle("🚫 Yetkin Yok")
+            .setDescription("Bu komutu sadece **sunucu kurucusu** kullanabilir.")
+        ],
+        ephemeral: true
+      });
+    }
+
     const sistemDurum = db.get(`kufur_${interaction.guild.id}`);
 
     const embed = new EmbedBuilder()
