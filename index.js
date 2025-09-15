@@ -132,7 +132,6 @@ client.on("messageCreate", async (message) => {
     }
   }
 });
-require("./src/events/küfürEngel")(client);
 require("./src/events/karşılama")(client);
 // ==== BOT LOGIN ====
 client.login(token);
