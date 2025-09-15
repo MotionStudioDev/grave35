@@ -1,50 +1,44 @@
-const {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ActionRowBuilder
-} = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const db = require("croxydb");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("küfür-sistemi")
-    .setDescription("Küfür engel sistemini kur.")
-    .addChannelOption(option =>
-      option.setName("kanal")
-        .setDescription("Log kanalı (isteğe bağlı)")
-        .setRequired(false)
-    ),
-
-  async execute(interaction) {
-    const user = interaction.user;
-    const guild = interaction.guild;
-    const kanal = interaction.options.getChannel("kanal");
-
-    if (user.id !== guild.ownerId) {
-      const embed = new EmbedBuilder()
-        .setColor("Red")
-        .setTitle("🚫 Yetki Yok")
-        .setDescription("Bu komutu sadece sunucu kurucusu kullanabilir.");
-      return interaction.reply({ embeds: [embed], ephemeral: true });
-    }
+    .setDescription("Sunucuda küfür engel sistemini aç/kapat."),
+  
+  async execute(interaction, client) {
+    const sistemDurum = db.get(`kufur_${interaction.guild.id}`);
 
     const embed = new EmbedBuilder()
       .setColor("Blurple")
       .setTitle("🛡️ Küfür Engel Sistemi")
-      .setDescription("Bu sunucuda küfür engel sistemi açılsın mı?");
+      .setDescription(sistemDurum 
+        ? "Bu sunucuda **küfür engel sistemi zaten açık**.\n\nİstersen kapatabilirsin. 👇"
+        : "Bu sunucuda küfür engel sistemi **kapalı**.\n\nAçmak ister misiniz? 👇")
+      .setTimestamp();
 
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`kufur_onay_${kanal?.id || "none"}`)
-        .setLabel("✅ Evet Aç!")
-        .setStyle(ButtonStyle.Success),
-      new ButtonBuilder()
-        .setCustomId("kufur_red")
-        .setLabel("❌ Hayır Açma!")
-        .setStyle(ButtonStyle.Danger)
-    );
+    const row = new ActionRowBuilder();
+
+    if (sistemDurum) {
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId("kufurKapat")
+          .setLabel("🚫 Sistemi Kapat!")
+          .setStyle(ButtonStyle.Danger)
+      );
+    } else {
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId("kufurAc")
+          .setLabel("✅ Evet Aç!")
+          .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+          .setCustomId("kufurHayir")
+          .setLabel("❌ Hayır Açma!")
+          .setStyle(ButtonStyle.Secondary)
+      );
+    }
 
     await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-  }
+  },
 };
