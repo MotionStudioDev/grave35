@@ -133,6 +133,12 @@ client.on("messageCreate", async (message) => {
   }
 });
 require("./src/events/karşılama")(client);
+// 
+client.on("messageCreate", async message => {
+  const küfürKontrol = require("./events/küfürKontrol");
+  await küfürKontrol(message);
+});
+
 // ==== BOT LOGIN ====
 client.login(token);
 
@@ -507,17 +513,3 @@ client.on("guildMemberAdd", member => otoRolHandler(client, member));
 const butonRolHandler = require("./events/butonrol.js");
 client.on("interactionCreate", interaction => butonRolHandler(interaction));
 /// küfür sistemi
-client.on("interactionCreate", async interaction => {
-  if (interaction.isChatInputCommand()) {
-    const command = client.commands.get(interaction.commandName);
-    if (command) await command.execute(interaction);
-  } else if (interaction.isButton()) {
-    const butonHandler = require("./events/küfürButon");
-    await butonHandler(interaction);
-  }
-});
-
-client.on("messageCreate", async message => {
-  const küfürKontrol = require("./events/küfürKontrol");
-  await küfürKontrol(message);
-});
