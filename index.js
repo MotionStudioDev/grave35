@@ -507,3 +507,13 @@ client.on("guildMemberAdd", member => otoRolHandler(client, member));
 /////// butonrol 
 const butonRolHandler = require("./events/butonrol.js");
 client.on("interactionCreate", interaction => butonRolHandler(interaction));
+/// küfür sistemi
+client.on("interactionCreate", async interaction => {
+  if (interaction.isChatInputCommand()) {
+    const command = client.commands.get(interaction.commandName);
+    if (command) await command.execute(interaction);
+  } else if (interaction.isButton()) {
+    const buttonHandler = require("./events/kufur.js");
+    await buttonHandler(interaction);
+  }
+});
