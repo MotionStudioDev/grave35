@@ -507,32 +507,3 @@ client.on("guildMemberAdd", member => otoRolHandler(client, member));
 const butonRolHandler = require("./events/butonrol.js");
 client.on("interactionCreate", interaction => butonRolHandler(interaction));
 /// küfür sistemi
-const fs = require("fs");
-const path = require("path");
-const db = require("croxydb");
-
-client.on("messageCreate", async message => {
-  if (message.author.bot || !message.guild) return;
-
-  const küfürListesi = JSON.parse(fs.readFileSync(path.join(__dirname, "veri", "küfürler.json"), "utf8"));
-  const içerik = message.content.toLowerCase();
-  const küfürVar = küfürListesi.some(kelime => içerik.includes(kelime));
-
-  if (!db.has(`kufurlog_${message.guild.id}`)) return;
-  if (!küfürVar) return;
-
-  await message.delete();
-
-  await message.channel.send(`${message.author}, bu sunucuda küfür yasaktır!`).then(msg => {
-    setTimeout(() => msg.delete(), 5000);
-  });
-
-  const key = `uyarı_${message.author.id}_${message.guild.id}`;
-  db.add(key, 1);
-
-  const logKanalID = db.get(`kufurlog_${message.guild.id}`);
-  const logChannel = message.guild.channels.cache.get(logKanalID);
-  if (logChannel) {
-    logChannel.send(`⚠️ <@${message.author.id}> küfür kullandı: \`${message.content}\``);
-  }
-});
