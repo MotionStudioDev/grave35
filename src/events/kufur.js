@@ -9,7 +9,6 @@ module.exports = async (interaction) => {
   const guild = interaction.guild;
   const guildID = guild.id;
 
-  // 🔒 Sadece kurucu kontrol edebilir
   if (user.id !== guild.ownerId) {
     return interaction.reply({
       content: "🚫 Bu işlemi sadece sunucu kurucusu yapabilir.",
@@ -17,10 +16,8 @@ module.exports = async (interaction) => {
     });
   }
 
-  // ✅ Sistemi Aç
   if (id.startsWith("kufur_ac_")) {
     const kanalID = id.split("_")[2];
-
     if (kanalID !== "none") {
       db.set(`kufurlog_${guildID}`, kanalID);
     }
@@ -40,7 +37,6 @@ module.exports = async (interaction) => {
     return interaction.reply({ embeds: [embed], ephemeral: true });
   }
 
-  // 🛑 Sistemi Kapat
   if (id === "kufur_kapat") {
     if (!db.has(`kufurlog_${guildID}`)) {
       const embed = new EmbedBuilder()
@@ -49,7 +45,6 @@ module.exports = async (interaction) => {
         .setDescription("Bu sunucuda aktif küfür engel sistemi bulunmuyor.")
         .setFooter({ text: `Sunucu: ${guild.name}` })
         .setTimestamp();
-
       return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
@@ -61,11 +56,9 @@ module.exports = async (interaction) => {
       .setDescription("Sistem başarıyla devre dışı bırakıldı.")
       .setFooter({ text: `Sunucu: ${guild.name}` })
       .setTimestamp();
-
     return interaction.reply({ embeds: [embed], ephemeral: true });
   }
 
-  // 📊 Uyarı Bilgisi
   if (id.startsWith("kufur_bilgi_")) {
     const kullanıcıID = id.split("_")[2];
     const uyarıKey = `uyarı_${kullanıcıID}_${guildID}`;
