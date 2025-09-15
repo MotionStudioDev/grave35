@@ -1,46 +1,82 @@
 const { EmbedBuilder } = require("discord.js");
-const fs = require("fs");
 const db = require("croxydb");
 
-module.exports = client => {
-  client.on("messageCreate", async message => {
-    if (message.author.bot || !message.guild) return;
+module.exports = async (interaction) => {
+  if (!interaction.isButton()) return;
 
-    const küfürler = JSON.parse(fs.readFileSync("./küfürler.json", "utf8"));
-    const içerik = message.content.toLowerCase();
+  const id = interaction.customId;
+  const user = interaction.user;
+  const guild = interaction.guild;
+  const guildID = guild.id;
 
-    if (küfürler.some(k => içerik.includes(k))) {
-      await message.delete(); // ✅ Küfürlü mesajı anında sil
+  if (user.id !== guild.ownerId) {
+    return interaction.reply({
+      content: "🚫 Bu işlemi sadece sunucu kurucusu yapabilir.",
+      ephemeral: true
+    });
+  }
 
-      const uyarıKey = `uyarı_${message.author.id}_${message.guild.id}`;
-      let uyarıSayısı = db.get(uyarıKey) || 0;
-      uyarıSayısı++;
-      db.set(uyarıKey, uyarıSayısı);
+  // ✅ Sistemi Aç
+  if (id.startsWith("kufur_ac_")) {
+    const kanalID = id.split("_")[2];
+    if (kanalID !== "none") {
+      db.set(`kufurlog_${guildID}`, kanalID);
+    }
 
+    const embed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle("✅ Küfür Engel Sistemi Aktif")
+      .setDescription("Sistem başarıyla aktif edildi.")
+      .addFields({
+        name: "Log Kanalı",
+        value: kanalID !== "none" ? `<#${kanalID}>` : "Belirtilmedi",
+        inline: true
+      })
+      .setFooter({ text: `Sunucu: ${guild.name}` })
+      .setTimestamp();
+
+    return interaction.reply({ embeds: [embed], ephemeral: true });
+  }
+
+  // 🛑 Sistemi Kapat
+  if (id === "kufur_kapat") {
+    if (!db.has(`kufurlog_${guildID}`)) {
       const embed = new EmbedBuilder()
         .setColor("Red")
-        .setTitle("🚫 Küfür Tespit Edildi")
-        .setDescription(`<@${message.author.id}> küfürlü mesaj gönderdi.\n**Bu uyarı 3 saniye içinde silinecektir.**`)
-        .addFields(
-          { name: "Uyarı Sayısı", value: `${uyarıSayısı}` }
-        )
-        .setFooter({ text: `Kanal: #${message.channel.name}` })
+        .setTitle("❌ Sistem Zaten Kapalı")
+        .setDescription("Bu sunucuda aktif küfür engel sistemi bulunmuyor.")
+        .setFooter({ text: `Sunucu: ${guild.name}` })
         .setTimestamp();
-
-      const uyarıMesajı = await message.channel.send({ embeds: [embed] }).catch(() => {});
-
-      // ⏱️ 3 saniye sonra uyarı embed’ini sil
-      setTimeout(() => {
-        if (uyarıMesajı) uyarıMesajı.delete().catch(() => {});
-      }, 3000);
-
-      const logID = db.get(`kufurlog_${message.guild.id}`);
-      if (logID) {
-        const logChannel = message.guild.channels.cache.get(logID);
-        if (logChannel) {
-          logChannel.send({ embeds: [embed] }).catch(() => {});
-        }
-      }
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
-  });
+
+    db.delete(`kufurlog_${guildID}`);
+
+    const embed = new EmbedBuilder()
+      .setColor("Orange")
+      .setTitle("🛑 Küfür Engel Sistemi Kapatıldı")
+      .setDescription("Sistem başarıyla devre dışı bırakıldı.")
+      .setFooter({ text: `Sunucu: ${guild.name}` })
+      .setTimestamp();
+    return interaction.reply({ embeds: [embed], ephemeral: true });
+  }
+
+  // 📊 Uyarı Bilgisi
+  if (id.startsWith("kufur_bilgi_")) {
+    const kullanıcıID = id.split("_")[2];
+    const uyarıKey = `uyarı_${kullanıcıID}_${guildID}`;
+    const uyarıSayısı = db.get(uyarıKey) || 0;
+
+    const embed = new EmbedBuilder()
+      .setColor("Blurple")
+      .setTitle("📊 Uyarı Bilgisi")
+      .addFields(
+        { name: "Kullanıcı", value: `<@${kullanıcıID}>`, inline: true },
+        { name: "Uyarı Sayısı", value: `${uyarıSayısı}`, inline: true }
+      )
+      .setFooter({ text: `Sunucu: ${guild.name}` })
+      .setTimestamp();
+
+    return interaction.reply({ embeds: [embed], ephemeral: true });
+  }
 };
