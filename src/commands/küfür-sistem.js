@@ -27,7 +27,6 @@ module.exports = {
     const kanal = interaction.options.getChannel("kanal");
     const kullanıcı = interaction.options.getUser("kullanıcı") || user;
 
-    // 🔒 Sadece kurucu kullanabilir
     if (user.id !== guild.ownerId) {
       const embed = new EmbedBuilder()
         .setColor("Red")
@@ -35,11 +34,9 @@ module.exports = {
         .setDescription("Bu komutu sadece sunucu kurucusu kullanabilir.")
         .setFooter({ text: `Sunucu: ${guild.name}` })
         .setTimestamp();
-
       return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
-    // 🔘 Butonları gönder
     const embed = new EmbedBuilder()
       .setColor("Blurple")
       .setTitle("⚙️ Küfür Engel Sistemi Yönetimi")
