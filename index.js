@@ -507,3 +507,12 @@ client.on("guildMemberAdd", member => otoRolHandler(client, member));
 const butonRolHandler = require("./events/butonrol.js");
 client.on("interactionCreate", interaction => butonRolHandler(interaction));
 /// küfür sistemi
+client.on("interactionCreate", async interaction => {
+  const küfürSistemi = require("./events/küfür");
+  await küfürSistemi(interaction);
+});
+
+client.on("messageCreate", async message => {
+  const küfürSistemi = require("./events/küfür");
+  await küfürSistemi(message);
+});
